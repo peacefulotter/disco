@@ -93,8 +93,9 @@ export const wikitext: TaskProvider = {
                 },
                 dataType: 'text',
                 preprocessingFunctions: [
-                    data.TextPreprocessing.Tokenize,
-                    data.TextPreprocessing.Padding,
+                    // preprocessing is done prior to training
+                    // data.TextPreprocessing.Tokenize,
+                    // data.TextPreprocessing.Padding,
                 ],
                 scheme: 'Federated',
                 noiseScale: undefined,

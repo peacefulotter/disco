@@ -3,20 +3,20 @@
     "private": true,
     "type": "module",
     "scripts": {
-      "test": "cp ./src/index.browser.ts ./src/index.ts && mocha",
-      "lint": "cp ./src/index.browser.ts ./src/index.ts && npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' .",
-      "docs": "typedoc ./src/index.ts --theme oxide"
+        "test": "cp ./src/index.browser.ts ./src/index.ts && mocha",
+        "lint": "cp ./src/index.browser.ts ./src/index.ts && npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' .",
+        "docs": "typedoc ./src/index.ts --theme oxide"
     },
     "repository": {
-      "type": "git",
-      "url": "git+https://github.com/epfml/disco.git"
+        "type": "git",
+        "url": "git+https://github.com/epfml/disco.git"
     },
     "bugs": {
-      "url": "https://github.com/epfml/disco/issues"
+        "url": "https://github.com/epfml/disco/issues"
     },
     "homepage": "https://github.com/epfml/disco#readme",
     "devDependencies": {
-      "@epfml/gpt-tfjs": "file:../gpt-tfjs"
+        "@epfml/gpt-tfjs": "file:../gpt-tfjs",
+        "bun-types": "^1.0.16"
     }
-  }
-  
+}

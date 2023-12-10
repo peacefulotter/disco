@@ -21,8 +21,11 @@ async function runUser(
 }
 
 async function main(): Promise<void> {
+    console.log('starting server')
+
     const [server, serverUrl] = await startServer()
 
+    console.log('before')
     const tasks = await fetchTasks(serverUrl)
     console.log('len(tasks)', tasks.size, [...tasks.keys()])
 
@@ -35,7 +38,6 @@ async function main(): Promise<void> {
     }
 
     const dataset = await loadData(task)
-    console.log(dataset)
 
     // Add more users to the list to simulate more clients
     await Promise.all([

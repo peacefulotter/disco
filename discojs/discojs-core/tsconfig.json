@@ -1,5 +1,17 @@
 {
-  "extends": "../tsconfig.base.json",
-  "include": ["src"],
-  "exclude": ["**/*.spec.ts", "src/core/index.*.ts"]
+    "extends": "../tsconfig.base.json",
+    "compilerOptions": {
+        "rootDir": "..",
+        "rootDirs": [".", "../gpt-tfjs"],
+        "outDir": "./dist",
+        "types": [
+            "bun-types" // add Bun global
+        ],
+        "paths": {
+            "@/*": ["."],
+            "@epfml/gpt-tfjs": ["../gpt-tfjs"]
+        }
+    },
+    "include": ["./src/**/*.ts", "../gpt-tfjs/**/*.ts"],
+    "exclude": ["node_modules/**/*", "dist/**/*", "**/*.spec.ts"]
 }

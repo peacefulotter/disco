@@ -28,7 +28,7 @@ function getFileStream(file: string) {
 }
 
 const getDatasetDir = (config: Config) =>
-    path.join(__dirname, '../../', 'datasets', config.dataset)
+    path.join(__dirname, '../', 'datasets', config.dataset)
 
 export async function getDatasetFile(split: string) {
     const datasetDir = getDatasetDir(config)

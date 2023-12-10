@@ -36,7 +36,7 @@ export const configModels = {
 
 const modelType: Model = 'gpt-nano'
 const model = configModels[modelType]
-const dataset = 'wikitext'
+const dataset = 'wikitext-103'
 const batchSize = 8
 const blockSize = 128 // = sequence length
 const lr = 0.001

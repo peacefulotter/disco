@@ -1,7 +1,12 @@
 {
     "compilerOptions": {
         "rootDir": "..",
-        "rootDirs": [".", "../discojs/discojs-node", "../discojs/gpt-tfjs", "../server"],
+        "rootDirs": [
+            ".",
+            "../discojs/discojs-node",
+            "../discojs/gpt-tfjs",
+            "../server"
+        ],
         "lib": ["ESNext"],
         "module": "esnext",
         "target": "esnext",

@@ -46,8 +46,14 @@ export class TasksAndModels extends EventEmitter {
         const discoTask = isTaskProvider(task) ? task.getTask() : task
         let model: tf.LayersModel | undefined
 
-        const modelPath = `./models/${discoTask.taskID}/`
+        const modelPath = `./models/${discoTask.taskID}`
         const modelFilePath = `file://${modelPath}/model.json`
+
+        console.log('modelFilePath', modelFilePath)
+        console.log('fs', fs.existsSync(modelFilePath))
+        console.log('url', discoTask.trainingInformation.modelURL)
+        console.log('provider', isTaskProvider(task))
+        console.log('tfjs', tf.getBackend(), tf.engine().backendNames())
 
         if (fs.existsSync(modelFilePath)) {
             // either a model has already been trained, or the pretrained
@@ -122,6 +128,8 @@ export class TasksAndModels extends EventEmitter {
         } else {
             discoTask = task
         }
+
+        console.log('model', model, 'task', discoTask.taskID)
 
         if (model === undefined) {
             tfModel = await this.loadModelFromTask(task)
