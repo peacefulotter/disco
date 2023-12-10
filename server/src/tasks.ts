@@ -32,8 +32,6 @@ export class TasksAndModels extends EventEmitter {
 
     async loadDefaultTasks(): Promise<void> {
         const tasks = Object.values<TaskProvider>(defaultTasks)
-        console.log(tasks)
-
         await Promise.all(
             tasks.map(async (t: TaskProvider) => {
                 await this.addTaskAndModel(t)
@@ -45,16 +43,12 @@ export class TasksAndModels extends EventEmitter {
     private async loadModelFromTask(
         task: Task | TaskProvider
     ): Promise<tf.LayersModel> {
-        console.log('loadModelFromTask', task)
-
         const discoTask = isTaskProvider(task) ? task.getTask() : task
         let model: tf.LayersModel | undefined
-        console.log('loadModelFromTask', discoTask)
 
         const modelPath = `./models/${discoTask.taskID}/`
-        console.log(modelPath, fs.existsSync(modelPath))
-
         const modelFilePath = `file://${modelPath}/model.json`
+
         if (fs.existsSync(modelFilePath)) {
             // either a model has already been trained, or the pretrained
             // model has already been downloaded
@@ -82,8 +76,6 @@ export class TasksAndModels extends EventEmitter {
                 throw new Error(e)
             }
         }
-
-        console.log(model)
 
         return model
     }
@@ -125,15 +117,11 @@ export class TasksAndModels extends EventEmitter {
         let tfModel: tf.LayersModel
         let discoTask: Task
 
-        console.log('here')
-
         if (isTaskProvider(task)) {
             discoTask = task.getTask()
         } else {
             discoTask = task
         }
-
-        console.log(discoTask)
 
         if (model === undefined) {
             tfModel = await this.loadModelFromTask(task)

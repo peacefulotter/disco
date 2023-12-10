@@ -22,14 +22,17 @@ async function runUser(
 
 async function main(): Promise<void> {
     const [server, serverUrl] = await startServer()
-    console.log(server, serverUrl)
 
     const tasks = await fetchTasks(serverUrl)
-    console.log(tasks)
+    console.log('len(tasks)', tasks.size, [...tasks.keys()])
 
     // Choose your task to train
-    const task = tasks.get('simple_face') as Task
+    const task = tasks.get('wikitext-103')
     console.log(task)
+
+    if (task === undefined) {
+        throw new Error('task not found')
+    }
 
     const dataset = await loadData(task)
     console.log(dataset)

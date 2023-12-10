@@ -4,8 +4,6 @@ import { Disco } from '@epfml/disco-server'
 
 export async function startServer(): Promise<[http.Server, URL]> {
     const disco = new Disco()
-    console.log(disco)
-    console.log('Adding default tasks')
     await disco.addDefaultTasks()
 
     const server = disco.serve(8000)
@@ -17,6 +15,8 @@ export async function startServer(): Promise<[http.Server, URL]> {
 
     let addr: string
     const rawAddr = server.address()
+    console.log(rawAddr)
+
     if (rawAddr === null) {
         throw new Error('unable to get server address')
     } else if (typeof rawAddr === 'string') {
@@ -31,5 +31,6 @@ export async function startServer(): Promise<[http.Server, URL]> {
         throw new Error('unable to get address to server')
     }
 
-    return [server, new URL('', `http://${addr}`)]
+    // return [server, new URL('', `http://${addr}`)]
+    return [server, new URL('', 'http://localhost:8000')]
 }

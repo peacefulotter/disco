@@ -3,12 +3,10 @@ export { Data } from './data'
 export { ImageData } from './image_data'
 export { TabularData } from './tabular_data'
 export { TextData } from './text_data'
-export type {
+export {
     ImagePreprocessing,
     TabularPreprocessing,
     TextPreprocessing,
-} from './preprocessing'
-export {
     IMAGE_PREPROCESSING,
     TABULAR_PREPROCESSING,
     TEXT_PREPROCESSING,
