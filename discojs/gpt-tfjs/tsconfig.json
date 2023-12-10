@@ -1,11 +1,15 @@
 {
   "compilerOptions": {
-      "lib": ["ESNext", "DOM"],
+      "rootDir": "..",
+      "rootDirs": [".", "../discojs-node"],
+      "lib": ["ESNext"],
       "module": "esnext",
       "target": "esnext",
+      "baseUrl": ".",
       "esModuleInterop": true,
       "moduleResolution": "bundler",
       "moduleDetection": "force",
+      "outDir": "./dist",
       "importHelpers": true,
       "allowImportingTsExtensions": true,
       "noEmit": true,
@@ -22,8 +26,19 @@
       "isolatedModules": true,
       "incremental": true,
       "checkJs": false,
-      "typeRoots": ["node_modules/@types", "discojs-core/types"]
+      // "typeRoots": ["node_modules/@types", "discojs-core/types"],
+      "types": [
+          "bun-types" // add Bun global
+      ],
+      "paths": {
+          "@/*": ["*"],
+          "@epfml/discojs-node": ["../discojs-node/src"],
+      }
   },
-  "include": [],
+  "include": [
+      "**/*.ts",
+      "decs.d.ts",
+      "../discojs-node/src/**/*.ts",
+  ],
+  "exclude": ["./node_modules/**/*", "./dist/**/*"]
 }
-

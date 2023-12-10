@@ -4,6 +4,6 @@
  * There can only be a single working model for a given task.
  */
 export enum ModelType {
-  WORKING = 'working',
-  SAVED = 'saved'
+    WORKING = 'working',
+    SAVED = 'saved',
 }

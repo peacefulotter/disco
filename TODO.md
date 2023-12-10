@@ -1,0 +1,3 @@
+- npm run build always?
+- symlink terrible?
+- add @epfml/gpt-tfjs because of tfjs import and not tfjs-node

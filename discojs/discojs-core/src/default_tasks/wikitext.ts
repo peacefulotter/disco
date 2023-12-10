@@ -1,8 +1,63 @@
 import { tf, data, Task, TaskProvider } from "../index.node";
 // FIXME: can't resolve ".."
 
-import { model } from "gpt-tfjs";
+import { model } from "@epfml/gpt-tfjs";
 const { GPTLMHeadModel } = model;
+
+export const configModels = {
+  gpt2: {
+    nLayer: 12,
+    nHead: 12,
+    nEmbd: 768,
+    vocabSize: 50257,
+    blockSize: 1024,
+  },
+  "gpt2-medium": {
+    nLayer: 24,
+    nHead: 16,
+    nEmbd: 1024,
+    vocabSize: 50257,
+    blockSize: 1024,
+  },
+  "gpt2-large": {
+    nLayer: 36,
+    nHead: 20,
+    nEmbd: 1280,
+    vocabSize: 50257,
+    blockSize: 1024,
+  },
+  "gpt2-xl": {
+    nLayer: 48,
+    nHead: 25,
+    nEmbd: 1600,
+    vocabSize: 50257,
+    blockSize: 1024,
+  },
+  "gpt-mini": { nLayer: 6, nHead: 6, nEmbd: 192 },
+  "gpt-micro": { nLayer: 4, nHead: 4, nEmbd: 128 },
+  "gpt-nano": { nLayer: 3, nHead: 3, nEmbd: 48 },
+} as const;
+
+const modelType: keyof typeof configModels = "gpt-nano";
+const modelConfig = configModels[modelType];
+
+const config = {
+  ...modelConfig,
+  debug: false,
+  verbose: false,
+  modelType,
+  batchSize: 8,
+  blockSize: 128,
+  lr: 0.001,
+  maxIter: 10,
+  shuffle: NaN,
+  weightDecay: false,
+  optimizer: "adamw",
+  embdDrop: 0.2,
+  residDrop: 0.2,
+  bias: true,
+  vocabSize: 50257,
+} as const;
 
 export const wikitext: TaskProvider = {
   getTask(): Task {
@@ -37,7 +92,10 @@ export const wikitext: TaskProvider = {
           metrics: ["perplexity"],
         },
         dataType: "text",
-        preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.Padding],
+        preprocessingFunctions: [
+          data.TextPreprocessing.Tokenize,
+          data.TextPreprocessing.Padding,
+        ],
         scheme: "Decentralized",
         noiseScale: undefined,
         decentralizedSecure: true,
@@ -48,7 +106,8 @@ export const wikitext: TaskProvider = {
   },
 
   async getModel(): Promise<tf.LayersModel> {
-    const gpt = GPTLMHeadModel({});
+    const gpt = GPTLMHeadModel(config);
+    console.log(typeof gpt.model);
     return gpt.model;
   },
 };

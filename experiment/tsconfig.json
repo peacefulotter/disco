@@ -1,0 +1,52 @@
+{
+    "compilerOptions": {
+        "rootDir": "..",
+        "rootDirs": [".", "../discojs/discojs-node", "../discojs/gpt-tfjs", "../server"],
+        "lib": ["ESNext"],
+        "module": "esnext",
+        "target": "esnext",
+        "baseUrl": ".",
+        "esModuleInterop": true,
+        "moduleResolution": "bundler",
+        "moduleDetection": "force",
+        "outDir": "./dist",
+        "importHelpers": true,
+        "allowImportingTsExtensions": true,
+        "noEmit": true,
+        "composite": true,
+        "strict": true,
+        "downlevelIteration": true,
+        "skipLibCheck": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowJs": true,
+        "declaration": true,
+        "emitDeclarationOnly": false,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "incremental": true,
+        "checkJs": false,
+        // "typeRoots": ["node_modules/@types", "discojs-core/types"],
+        "types": [
+            "bun-types" // add Bun global
+        ],
+        "paths": {
+            "@/*": ["./*"],
+            "@epfml/discojs-node": ["../discojs/discojs-node/src"],
+            "#/gpt-tfjs": ["../discojs/gpt-tfjs"],
+            "@epfml/disco-server": ["../server/src"]
+        }
+    },
+    "ts-node": {
+        "esm": true,
+        "experimentalSpecifierResolution": "node"
+    },
+    "include": [
+        "**/*.ts",
+        "decs.d.ts",
+        "../discojs/discojs-node/**/*.ts",
+        "../discojs/gpt-tfjs/**/*.ts",
+        "../server/**/*.ts"
+    ],
+    "exclude": ["./node_modules/**/*", "./dist/**/*"]
+}

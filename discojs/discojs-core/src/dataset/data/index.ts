@@ -1,9 +1,15 @@
-export { DataSplit } from './data_split'
+export type { DataSplit } from './data_split'
 export { Data } from './data'
 export { ImageData } from './image_data'
 export { TabularData } from './tabular_data'
 export { TextData } from './text_data'
+export type {
+    ImagePreprocessing,
+    TabularPreprocessing,
+    TextPreprocessing,
+} from './preprocessing'
 export {
-  ImagePreprocessing, TabularPreprocessing, TextPreprocessing,
-  IMAGE_PREPROCESSING, TABULAR_PREPROCESSING, TEXT_PREPROCESSING
+    IMAGE_PREPROCESSING,
+    TABULAR_PREPROCESSING,
+    TEXT_PREPROCESSING,
 } from './preprocessing'

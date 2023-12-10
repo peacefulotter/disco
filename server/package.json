@@ -2,6 +2,7 @@
   "name": "@epfml/disco-server",
   "version": "2.1.1",
   "main": "dist/index.js",
+  "type": "module",
   "bin": {
     "disco-server": "./dist/run_server.js"
   },
@@ -16,8 +17,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@epfml/discojs-node": "^2.1.1",
     "@koush/wrtc": "0.5",
+    "bun-types": "^1.0.15",
     "cors": "2",
     "express": "4",
     "express-ws": "5",
@@ -26,21 +27,13 @@
     "msgpack-lite": "0.1",
     "uuid": "9"
   },
-  "nodemonConfig": {
-    "ignore": [
-      "dist/*",
-      "models/*"
-    ],
-    "execMap": {
-      "ts": "node --inspect=0.0.0.0:9229 --nolazy -r ts-node/register"
-    }
-  },
   "devDependencies": {
     "@types/chai": "4",
     "@types/cors": "2",
     "@types/express-ws": "3",
     "@types/mocha": "9",
     "@types/msgpack-lite": "0.1",
+    "@types/node": "^20.10.3",
     "@types/supertest": "2",
     "@types/uuid": "9",
     "@typescript-eslint/eslint-plugin": "4",

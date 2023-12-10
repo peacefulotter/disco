@@ -4,6 +4,6 @@
     "outDir": "dist",
     "baseUrl": "src"
   },
-  "include": ["src"],
+  "include": ["src", "../discojs-core/decs.d.ts"],
   "exclude": ["**/*.spec.ts", "src/core/index.*.ts"]
 }
