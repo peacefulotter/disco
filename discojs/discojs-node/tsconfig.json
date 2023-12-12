@@ -4,6 +4,7 @@
         "rootDir": "..",
         "rootDirs": [".", "../discojs-core", "../gpt-tfjs"],
         "outDir": "./dist",
+        // "typeRoots": ["./node_modules/@types", "../discojs-core/types", "./node_modules/bun-types"],
         "types": [
             "bun-types" // add Bun global
         ],

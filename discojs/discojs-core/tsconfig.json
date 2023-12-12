@@ -2,13 +2,13 @@
     "extends": "../tsconfig.base.json",
     "compilerOptions": {
         "rootDir": "..",
-        "rootDirs": [".", "../gpt-tfjs"],
+        "rootDirs": ["src", "../gpt-tfjs"],
         "outDir": "./dist",
         "types": [
             "bun-types" // add Bun global
         ],
         "paths": {
-            "@/*": ["."],
+            "@epfml/discojs-core": ["."],
             "@epfml/gpt-tfjs": ["../gpt-tfjs"]
         }
     },
