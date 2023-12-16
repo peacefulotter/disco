@@ -51,6 +51,7 @@ const config = {
     shuffle: NaN,
     weightDecay: false,
     optimizer: 'adamw',
+    dropout: 0.2,
     embdDrop: 0.2,
     residDrop: 0.2,
     bias: true,
@@ -87,7 +88,7 @@ export const wikitext: TaskProvider = {
                 modelCompileData: {
                     optimizer: 'sgd',
                     loss: 'categoricalCrossentropy',
-                    metrics: ['categoricalCrossentropy'], // 'perplexity' doesnt exist
+                    metrics: ['precision', 'mse'], // 'perplexity' doesnt exist
                 },
                 dataType: 'text',
                 preprocessingFunctions: [
@@ -106,7 +107,7 @@ export const wikitext: TaskProvider = {
 
     async getModel(): Promise<tf.LayersModel> {
         const gpt = GPTLMHeadModel(config)
-        console.log(typeof gpt.model)
+        console.log('GPT.model typeof', typeof gpt.model)
         return gpt.model
     },
 }

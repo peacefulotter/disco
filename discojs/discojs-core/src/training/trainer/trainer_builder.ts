@@ -51,7 +51,7 @@ export class TrainerBuilder {
     }
 
     /**
-     * If a model exists in memory, laod it, otherwise load model from server
+     * If a model exists in memory, load it, otherwise load model from server
      * @returns
      */
     private async getModel(client: clients.Client): Promise<tf.LayersModel> {
