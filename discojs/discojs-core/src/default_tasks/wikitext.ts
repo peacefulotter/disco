@@ -1,5 +1,4 @@
-import { tf, data, Task, TaskProvider } from '../index.node'
-// FIXME: can't resolve ".."
+import { tf, Task, TaskProvider } from '../index.node'
 
 import { model } from '@epfml/gpt-tfjs'
 const { GPTLMHeadModel } = model
@@ -49,7 +48,6 @@ const config = {
     batchSize: 8,
     blockSize: 128,
     lr: 0.001,
-    maxIter: 10,
     shuffle: NaN,
     weightDecay: false,
     optimizer: 'adamw',
@@ -89,7 +87,7 @@ export const wikitext: TaskProvider = {
                 modelCompileData: {
                     optimizer: 'sgd',
                     loss: 'categoricalCrossentropy',
-                    metrics: ['perplexity'],
+                    metrics: ['categoricalCrossentropy'], // 'perplexity' doesnt exist
                 },
                 dataType: 'text',
                 preprocessingFunctions: [

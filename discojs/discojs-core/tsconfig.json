@@ -2,7 +2,7 @@
     "extends": "../tsconfig.base.json",
     "compilerOptions": {
         "rootDir": "..",
-        "rootDirs": ["src", "../gpt-tfjs"],
+        "rootDirs": ["./src", "../gpt-tfjs"],
         "outDir": "./dist",
         "types": [
             "bun-types" // add Bun global

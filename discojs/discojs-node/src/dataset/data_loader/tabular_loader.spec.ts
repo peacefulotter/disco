@@ -9,31 +9,19 @@ const titanicMock: Task = {
     taskID: 'titanic',
     displayInformation: {},
     trainingInformation: {
-        inputColumns: [
-            'PassengerId',
-            'Age',
-            'SibSp',
-            'Parch',
-            'Fare',
-            'Pclass',
-        ],
+        inputColumns: ['PassengerId', 'Age', 'SibSp', 'Parch', 'Fare', 'Pclass'],
         outputColumns: ['Survived'],
     },
 } as unknown as Task
 
 describe('tabular loader', () => {
     it('loads a single sample', async () => {
-        const loaded = new node.data.NodeTabularLoader(
-            titanicMock,
-            ','
-        ).loadAll(inputFiles, {
+        const loaded = new node.data.NodeTabularLoader(titanicMock, ',').loadAll(inputFiles, {
             features: titanicMock.trainingInformation?.inputColumns,
             labels: titanicMock.trainingInformation?.outputColumns,
             shuffle: false,
         })
-        const sample = await (
-            await (await loaded).train.dataset.iterator()
-        ).next()
+        const sample = await (await (await loaded).train.dataset.iterator()).next()
         /**
          * Data loaders simply return a dataset object read from input sources.
          * They do NOT apply any transform/conversion, which is left to the
@@ -56,9 +44,7 @@ describe('tabular loader', () => {
             labels: titanic.trainingInformation?.outputColumns,
             shuffle: false,
         }
-        const dataset = await (
-            await loader.loadAll(inputFiles, config)
-        ).train.dataset.toArray()
+        const dataset = await (await loader.loadAll(inputFiles, config)).train.dataset.toArray()
         const shuffled = await (
             await loader.loadAll(inputFiles, { ...config, shuffle: true })
         ).train.dataset.toArray()

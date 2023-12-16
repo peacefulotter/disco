@@ -3,7 +3,8 @@
         "rootDir": "..",
         "rootDirs": [
             ".",
-            "../discojs/discojs-node",
+            // "../discojs/discojs-node",
+            "../discojs/discojs-core",
             "../discojs/gpt-tfjs",
             "../server"
         ],
@@ -31,13 +32,13 @@
         "isolatedModules": true,
         "incremental": true,
         "checkJs": false,
-        // "typeRoots": ["node_modules/@types", "discojs-core/types"],
         "types": [
             "bun-types" // add Bun global
         ],
         "paths": {
             "@/*": ["./*"],
-            "@epfml/discojs-node": ["../discojs/discojs-node/src"],
+            // "@epfml/discojs-node": ["../discojs/discojs-node/src/"],
+            "@epfml/discojs-core": ["../discojs/discojs-core/src/index.node"],
             "#/gpt-tfjs": ["../discojs/gpt-tfjs"],
             "@epfml/disco-server": ["../server/src"]
         }
@@ -49,7 +50,8 @@
     "include": [
         "**/*.ts",
         "decs.d.ts",
-        "../discojs/discojs-node/**/*.ts",
+        // "../discojs/discojs-node/**/*.ts",
+        "../discojs/discojs-core/**/*.ts",
         "../discojs/gpt-tfjs/**/*.ts",
         "../server/**/*.ts"
     ],

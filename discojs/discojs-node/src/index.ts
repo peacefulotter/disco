@@ -1,3 +1,2 @@
-export * as tf from "@tensorflow/tfjs-node";
-export * from "@epfml/discojs-core";
-export * as node from "./imports";
+export * from '@epfml/discojs-core/src/index.node'
+export * as node from './imports'

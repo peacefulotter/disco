@@ -1,4 +1,4 @@
-import { Task } from '..'
+import { Task } from '../'
 import { DataSplit } from './data'
 import { DataConfig, DataLoader } from './data_loader/data_loader'
 
@@ -9,142 +9,150 @@ import { Map } from 'immutable'
  * either be file blobs or regular file system paths.
  */
 export class DatasetBuilder<Source> {
-  /**
-   * The buffer of unlabelled file sources.
-   */
-  private _sources: Source[]
-  /**
-   * The buffer of labelled file sources.
-   */
-  private labelledSources: Map<string, Source[]>
-  /**
-   * Whether a dataset was already produced.
-   */
-  private _built: boolean
-
-  constructor (
     /**
-     * The data loader used to load the data contained in the provided files.
+     * The buffer of unlabelled file sources.
      */
-    private readonly dataLoader: DataLoader<Source>,
+    private _sources: Source[]
     /**
-     * The task for which the dataset should be built.
+     * The buffer of labelled file sources.
      */
-    public readonly task: Task
-  ) {
-    this._sources = []
-    this.labelledSources = Map()
-    this._built = false
-  }
+    private labelledSources: Map<string, Source[]>
+    /**
+     * Whether a dataset was already produced.
+     */
+    private _built: boolean
 
-  /**
-   * Adds the given file sources to the builder's buffer. Sources may be provided a label in the case
-   * of supervised learning.
-   * @param sources The array of file sources
-   * @param label The file sources label
-   */
-  addFiles (sources: Source[], label?: string): void {
-    if (this.built) {
-      this.resetBuiltState()
-    }
-    if (label === undefined) {
-      this._sources = this._sources.concat(sources)
-    } else {
-      const currentSources = this.labelledSources.get(label)
-      if (currentSources === undefined) {
-        this.labelledSources = this.labelledSources.set(label, sources)
-      } else {
-        this.labelledSources = this.labelledSources.set(label, currentSources.concat(sources))
-      }
-    }
-  }
-
-  /**
-   * Clears the file sources buffers. If a label is provided, only the file sources
-   * corresponding to the given label will be removed.
-   * @param label The file sources label
-   */
-  clearFiles (label?: string): void {
-    if (this.built) {
-      this.resetBuiltState()
-    }
-    if (label === undefined) {
-      this._sources = []
-    } else {
-      this.labelledSources = this.labelledSources.delete(label)
-    }
-  }
-
-  // If files are added or removed, then this should be called since the latest
-  // version of the dataset_builder has not yet been built.
-  private resetBuiltState (): void {
-    this._built = false
-  }
-
-  private getLabels (): string[] {
-    // We need to duplicate the labels as we need one for each soure.
-    // Say for label A we have sources [img1, img2, img3], then we
-    // need labels [A, A, A].
-    let labels: string[][] = []
-    this.labelledSources.valueSeq().forEach((sources, index) => {
-      const sourcesLabels = Array.from({ length: sources.length }, (_) => index.toString())
-      labels = labels.concat(sourcesLabels)
-    })
-    return labels.flat()
-  }
-
-  async build (config?: DataConfig): Promise<DataSplit> {
-    // Require that at leat one source collection is non-empty, but not both
-    if ((this._sources.length > 0) === (this.labelledSources.size > 0)) {
-      throw new Error('Please provide dataset input files')
+    constructor(
+        /**
+         * The data loader used to load the data contained in the provided files.
+         */
+        private readonly dataLoader: DataLoader<Source>,
+        /**
+         * The task for which the dataset should be built.
+         */
+        public readonly task: Task
+    ) {
+        this._sources = []
+        this.labelledSources = Map()
+        this._built = false
     }
 
-    let dataTuple: DataSplit
-    if (this._sources.length > 0) {
-      let defaultConfig: DataConfig = {}
-
-      if (config?.inference) {
-        // Inferring model, no labels needed
-        defaultConfig = {
-          features: this.task.trainingInformation.inputColumns,
-          shuffle: false
+    /**
+     * Adds the given file sources to the builder's buffer. Sources may be provided a label in the case
+     * of supervised learning.
+     * @param sources The array of file sources
+     * @param label The file sources label
+     */
+    addFiles(sources: Source[], label?: string): void {
+        if (this.built) {
+            this.resetBuiltState()
         }
-      } else {
-        // Labels are contained in the given sources
-        defaultConfig = {
-          features: this.task.trainingInformation.inputColumns,
-          labels: this.task.trainingInformation.outputColumns,
-          shuffle: false
+        if (label === undefined) {
+            this._sources = this._sources.concat(sources)
+        } else {
+            const currentSources = this.labelledSources.get(label)
+            if (currentSources === undefined) {
+                this.labelledSources = this.labelledSources.set(label, sources)
+            } else {
+                this.labelledSources = this.labelledSources.set(
+                    label,
+                    currentSources.concat(sources)
+                )
+            }
         }
-      }
-
-      dataTuple = await this.dataLoader.loadAll(this._sources, { ...defaultConfig, ...config })
-    } else {
-      // Labels are inferred from the file selection boxes
-      const defaultConfig = {
-        labels: this.getLabels(),
-        shuffle: false
-      }
-      const sources = this.labelledSources.valueSeq().toArray().flat()
-      dataTuple = await this.dataLoader.loadAll(sources, defaultConfig)
     }
-    // TODO @s314cy: Support .csv labels for image datasets (supervised training or testing)
-    this._built = true
-    return dataTuple
-  }
 
-  /**
-   * Whether the dataset builder has already been consumed to produce a dataset.
-   */
-  get built (): boolean {
-    return this._built
-  }
+    /**
+     * Clears the file sources buffers. If a label is provided, only the file sources
+     * corresponding to the given label will be removed.
+     * @param label The file sources label
+     */
+    clearFiles(label?: string): void {
+        if (this.built) {
+            this.resetBuiltState()
+        }
+        if (label === undefined) {
+            this._sources = []
+        } else {
+            this.labelledSources = this.labelledSources.delete(label)
+        }
+    }
 
-  get size (): number {
-    return Math.max(this._sources.length, this.labelledSources.size)
-  }
+    // If files are added or removed, then this should be called since the latest
+    // version of the dataset_builder has not yet been built.
+    private resetBuiltState(): void {
+        this._built = false
+    }
 
-  get sources (): Source[] {
-    return this._sources.length > 0 ? this._sources : this.labelledSources.valueSeq().toArray().flat()
-  }
+    private getLabels(): string[] {
+        // We need to duplicate the labels as we need one for each soure.
+        // Say for label A we have sources [img1, img2, img3], then we
+        // need labels [A, A, A].
+        let labels: string[][] = []
+        this.labelledSources.valueSeq().forEach((sources, index) => {
+            const sourcesLabels = Array.from({ length: sources.length }, (_) => index.toString())
+            labels = labels.concat(sourcesLabels)
+        })
+        return labels.flat()
+    }
+
+    async build(config?: DataConfig): Promise<DataSplit> {
+        // Require that at leat one source collection is non-empty, but not both
+        if (this._sources.length > 0 === this.labelledSources.size > 0) {
+            throw new Error('Please provide dataset input files')
+        }
+
+        let dataTuple: DataSplit
+        if (this._sources.length > 0) {
+            let defaultConfig: DataConfig = {}
+
+            if (config?.inference) {
+                // Inferring model, no labels needed
+                defaultConfig = {
+                    features: this.task.trainingInformation.inputColumns,
+                    shuffle: false,
+                }
+            } else {
+                // Labels are contained in the given sources
+                defaultConfig = {
+                    features: this.task.trainingInformation.inputColumns,
+                    labels: this.task.trainingInformation.outputColumns,
+                    shuffle: false,
+                }
+            }
+
+            dataTuple = await this.dataLoader.loadAll(this._sources, {
+                ...defaultConfig,
+                ...config,
+            })
+        } else {
+            // Labels are inferred from the file selection boxes
+            const defaultConfig = {
+                labels: this.getLabels(),
+                shuffle: false,
+            }
+            const sources = this.labelledSources.valueSeq().toArray().flat()
+            dataTuple = await this.dataLoader.loadAll(sources, defaultConfig)
+        }
+        // TODO @s314cy: Support .csv labels for image datasets (supervised training or testing)
+        this._built = true
+        return dataTuple
+    }
+
+    /**
+     * Whether the dataset builder has already been consumed to produce a dataset.
+     */
+    get built(): boolean {
+        return this._built
+    }
+
+    get size(): number {
+        return Math.max(this._sources.length, this.labelledSources.size)
+    }
+
+    get sources(): Source[] {
+        return this._sources.length > 0
+            ? this._sources
+            : this.labelledSources.valueSeq().toArray().flat()
+    }
 }

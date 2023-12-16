@@ -6,22 +6,15 @@ import { isTask, Task, TaskID } from './task'
 
 const TASK_ENDPOINT = 'tasks'
 
-export async function pushTask(
-    url: URL,
-    task: Task,
-    model: tf.LayersModel
-): Promise<void> {
+export async function pushTask(url: URL, task: Task, model: tf.LayersModel): Promise<void> {
     await axios.post(url.href + TASK_ENDPOINT, {
         task,
         model: await serialization.model.encode(model),
-        weights: await serialization.weights.encode(
-            WeightsContainer.from(model)
-        ),
+        weights: await serialization.weights.encode(WeightsContainer.from(model)),
     })
 }
 
 export async function fetchTasks(url: URL): Promise<Map<TaskID, Task>> {
-    console.log(new URL(TASK_ENDPOINT, url).href)
     const response = await axios.get(new URL(TASK_ENDPOINT, url).href)
     const tasks: unknown = response.data
 

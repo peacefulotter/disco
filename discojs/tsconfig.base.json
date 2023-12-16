@@ -9,7 +9,6 @@
         "importHelpers": true,
         "allowImportingTsExtensions": true,
         "noEmit": true,
-        "composite": true,
         "strict": true,
         "downlevelIteration": true,
         "skipLibCheck": true,
@@ -22,6 +21,6 @@
         "isolatedModules": true,
         "incremental": true,
         "checkJs": false,
-        "typeRoots": ["node_modules/@types", "discojs-core/types"]
+        // "typeRoots": ["node_modules/@types", "node_modules/bun-types", "discojs-core/types"]
     }
 }

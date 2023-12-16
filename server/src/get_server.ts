@@ -27,10 +27,7 @@ export class Disco {
     }
 
     // If a model is not provided, its url must be provided in the task object
-    async addTask(
-        task: Task | TaskProvider,
-        model?: tf.LayersModel | URL
-    ): Promise<void> {
+    async addTask(task: Task | TaskProvider, model?: tf.LayersModel | URL): Promise<void> {
         await this.tasksAndModels.addTaskAndModel(task, model)
     }
 
@@ -51,19 +48,6 @@ export class Disco {
         const server = app.listen(port ?? CONFIG.serverPort, () => {
             console.log(`Disco Server listening on ${CONFIG.serverUrl.href}`)
         })
-
-        console.info('Disco Server initially loaded the tasks below')
-        console.table(
-            Array.from(this.tasksAndModels.tasksAndModels).map((t) => {
-                return {
-                    ID: t[0].taskID,
-                    Title: t[0].displayInformation.taskTitle,
-                    'Data Type': t[0].trainingInformation.dataType,
-                    Scheme: t[0].trainingInformation.scheme,
-                }
-            })
-        )
-        console.log()
 
         return server
     }

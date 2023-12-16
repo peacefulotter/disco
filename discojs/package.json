@@ -31,7 +31,6 @@
     "ws": "8"
   },
   "devDependencies": {
-    "@epfml/discojs-node": "file:./discojs-node",
     "@types/chai": "4",
     "@types/mocha": "9",
     "@types/simple-peer": "9",

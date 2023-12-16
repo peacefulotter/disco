@@ -2,17 +2,28 @@
     "extends": "../tsconfig.base.json",
     "compilerOptions": {
         "rootDir": "..",
-        "rootDirs": [".", "../discojs-core", "../gpt-tfjs"],
+        "rootDirs": [
+            "./src", 
+            // "../../discojs-core", 
+            "../gpt-tfjs"
+        ],
         "outDir": "./dist",
         // "typeRoots": ["./node_modules/@types", "../discojs-core/types", "./node_modules/bun-types"],
         "types": [
+            "node",
             "bun-types" // add Bun global
         ],
         "paths": {
-            "@epfml/discojs-core": ["../discojs-core"],
+            // "@epfml/discojs-core": ["../discojs-core/src/index.node"],
             "@epfml/gpt-tfjs": ["../gpt-tfjs"]
-        }
+        },
+        "typeRoots": ["node_modules/@types", "node_modules/bun-types", "../discojs-core/types"]
+
     },
-    "include": ["**/*.ts", "../discojs-core/**/*.ts", "../gpt-tfjs/**/*.ts"],
+    "include": [
+        "**/*.ts", 
+        // "../discojs-core/**/*.ts", 
+        "../gpt-tfjs/**/*.ts"
+    ],
     "exclude": ["./node_modules/**/*", "./dist/**/*", "**/*.spec.ts"]
 }

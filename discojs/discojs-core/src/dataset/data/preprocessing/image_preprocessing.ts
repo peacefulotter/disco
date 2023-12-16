@@ -1,4 +1,4 @@
-import { Task, tf } from '../../..'
+import { Task, tf } from '../../../'
 import { PreprocessingFunction } from './base'
 
 import { List } from 'immutable'
@@ -45,6 +45,4 @@ const normalize: PreprocessingFunction = {
 /**
  * Available image preprocessing functions.
  */
-export const AVAILABLE_PREPROCESSING = List([resize, normalize]).sortBy(
-    (e) => e.type
-)
+export const AVAILABLE_PREPROCESSING = List([resize, normalize]).sortBy((e) => e.type)

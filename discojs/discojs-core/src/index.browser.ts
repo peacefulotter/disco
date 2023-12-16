@@ -1,3 +1,2 @@
-export * as tf from '@tensorflow/tfjs'
-
 export * from '.'
+export * as tf from '@tensorflow/tfjs'
