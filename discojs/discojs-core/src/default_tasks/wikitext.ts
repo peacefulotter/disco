@@ -84,7 +84,7 @@ export const wikitext: TaskProvider = {
                 epochs: 10,
                 roundDuration: 10,
                 validationSplit: 0.2,
-                batchSize: 10,
+                batchSize: 16,
                 modelCompileData: {
                     optimizer: 'sgd',
                     loss: 'categoricalCrossentropy',
@@ -101,6 +101,7 @@ export const wikitext: TaskProvider = {
                 decentralizedSecure: true,
                 minimumReadyPeers: 3,
                 maxShareValue: 100,
+                learningRate: 0.001,
             },
         }
     },

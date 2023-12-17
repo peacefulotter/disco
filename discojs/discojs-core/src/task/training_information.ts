@@ -2,9 +2,7 @@ import { AggregatorChoice } from '../aggregator/get'
 import { Preprocessing } from '../dataset/data/preprocessing'
 import { isModelCompileData, ModelCompileData } from './model_compile_data'
 
-export function isTrainingInformation(
-    raw: unknown
-): raw is TrainingInformation {
+export function isTrainingInformation(raw: unknown): raw is TrainingInformation {
     if (typeof raw !== 'object') {
         return false
     }
@@ -73,11 +71,9 @@ export function isTrainingInformation(
         (noiseScale !== undefined && typeof noiseScale !== 'number') ||
         (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
         (learningRate !== undefined && typeof learningRate !== 'number') ||
-        (decentralizedSecure !== undefined &&
-            typeof decentralizedSecure !== 'boolean') ||
+        (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
         (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
-        (minimumReadyPeers !== undefined &&
-            typeof minimumReadyPeers !== 'number') ||
+        (minimumReadyPeers !== undefined && typeof minimumReadyPeers !== 'number') ||
         (aggregator !== undefined && typeof aggregator !== 'number')
     ) {
         return false
@@ -89,20 +85,10 @@ export function isTrainingInformation(
             return false
         }
     } else if (dataType in ['text', 'tabular']) {
-        if (
-            !(
-                Array.isArray(inputColumns) &&
-                inputColumns.every((e) => typeof e === 'string')
-            )
-        ) {
+        if (!(Array.isArray(inputColumns) && inputColumns.every((e) => typeof e === 'string'))) {
             return false
         }
-        if (
-            !(
-                Array.isArray(outputColumns) &&
-                outputColumns.every((e) => typeof e === 'string')
-            )
-        ) {
+        if (!(Array.isArray(outputColumns) && outputColumns.every((e) => typeof e === 'string'))) {
             return false
         }
     }
@@ -123,18 +109,12 @@ export function isTrainingInformation(
 
     if (
         LABEL_LIST !== undefined &&
-        !(
-            Array.isArray(LABEL_LIST) &&
-            LABEL_LIST.every((e) => typeof e === 'string')
-        )
+        !(Array.isArray(LABEL_LIST) && LABEL_LIST.every((e) => typeof e === 'string'))
     ) {
         return false
     }
 
-    if (
-        preprocessingFunctions !== undefined &&
-        !Array.isArray(preprocessingFunctions)
-    ) {
+    if (preprocessingFunctions !== undefined && !Array.isArray(preprocessingFunctions)) {
         return false
     }
 
@@ -157,7 +137,7 @@ export interface TrainingInformation {
     preprocessingFunctions?: Preprocessing[]
     // modelCompileData: interface of additional training information (optimizer, loss and metrics)
     modelCompileData: ModelCompileData
-    // dataType, e.g. image or tabular
+    // dataType, e.g. image, tabular or text
     dataType: string
     // inputColumns: for tabular data, the columns to be chosen as input data for the model
     inputColumns?: string[]

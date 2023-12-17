@@ -1,7 +1,10 @@
 import { tf } from '../..'
 import fs from 'node:fs'
-import { TextConfig, TextLoader } from '@epfml/discojs-core/src/dataset/data_loader/text_loader'
-import { Dataset } from '@epfml/discojs-core/src/dataset/'
+import {
+    TextConfig,
+    TextLoader,
+    TokenizedDataset,
+} from '@epfml/discojs-core/src/dataset/data_loader/text_loader'
 
 type TokenizedSample = {
     xs: number[]
@@ -12,14 +15,10 @@ type AsyncTokenizedGenerator = AsyncGenerator<TokenizedSample, void, unknown>
 
 export class NodeTextLoader extends TextLoader {
     getFileStream(source: string, config: TextConfig) {
-        // blockSize to get an initial full x
-        // + batchSize to retrieve a batch from it (each element of the batch is a shift by << n for the nth elt in batch)
-        // + 1 for the last y of the batch
-        // * 2 because we store the tokens into 2 bytes (16 bites uint)
-        // TODO: sure about this?
+        // blockSize + 1 = input size (size of x = blockSize, size of y = blockSize shifted right by 1, thus the + 1)
+        // * batchSize to retrieve a batch at once
+        // * 2 because tokens are stored as uint16 and thus require 2 bytes
         const highWaterMark = (config.blockSize + 1) * config.batchSize * 2 // (config.blockSize + config.batchSize + 1) * 2
-        console.log('highWaterMark', highWaterMark)
-
         return fs.createReadStream(source, {
             highWaterMark, // set this to seq length * 2 because we store uint16,
         })
@@ -87,7 +86,7 @@ export class NodeTextLoader extends TextLoader {
         }))
     }
 
-    async loadDatasetFrom(source: string, config: TextConfig): Promise<Dataset> {
+    async loadDatasetFrom(source: string, config: TextConfig): Promise<TokenizedDataset> {
         const prefix = 'file://'
         if (!source.startsWith(prefix)) {
             source = prefix + source
@@ -98,6 +97,6 @@ export class NodeTextLoader extends TextLoader {
             const { value } = await stream.next()
             return value
         }
-        return await this.getBackboneDataset(config, requestNext)
+        return (await this.getBackboneDataset(config, requestNext)) as TokenizedDataset
     }
 }

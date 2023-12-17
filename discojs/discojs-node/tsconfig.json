@@ -8,9 +8,9 @@
             "../gpt-tfjs"
         ],
         "outDir": "./dist",
-        // "typeRoots": ["./node_modules/@types", "../discojs-core/types", "./node_modules/bun-types"],
         "types": [
             "node",
+            "mocha",
             "bun-types" // add Bun global
         ],
         "paths": {

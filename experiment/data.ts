@@ -10,8 +10,9 @@ async function getDatasetSource(root: string, splits: (keyof TextSource)[]): Pro
     console.log('Found', files.length, 'files in dataset under', root)
     return Object.fromEntries(
         splits.map((split) => {
+            const s = split == 'train' ? 'test' : split // TODO: remove this, just for testing
             const files_path = files
-                .filter((f) => f.endsWith(TOKENIZED_FILE_EXTENSION) && f.includes(split))
+                .filter((f) => f.endsWith(TOKENIZED_FILE_EXTENSION) && f.includes(s))
                 .map((f) => path.join(root, f))
             return [split, files_path]
         })

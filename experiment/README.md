@@ -4,7 +4,8 @@
 bun install
 # FIXME: npm i -S ../discojs/discojs-node/
 ./install-wikitext.sh
-bun core/preprocess.ts
+bun ./core/preprocess.ts
+bun run dev
 ```
 
 ## Disco.js API

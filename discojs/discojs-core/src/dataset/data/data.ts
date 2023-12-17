@@ -40,7 +40,7 @@ export abstract class Data {
      */
     get batchedDataset(): Dataset {
         const batchSize = this.task.trainingInformation.batchSize
-        return batchSize === undefined ? this.dataset : this.dataset.batch(batchSize)
+        return batchSize === undefined ? this.dataset : (this.dataset.batch(batchSize) as Dataset)
     }
 
     /**
@@ -92,6 +92,6 @@ export abstract class Data {
      * parameters.
      */
     get preprocessedDataset(): Dataset {
-        return this.dataset.map(this.preprocessing)
+        return this.dataset.map(this.preprocessing) as Dataset
     }
 }
