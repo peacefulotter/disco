@@ -34,7 +34,7 @@ const config: TextConfig = {
     vocabSize: 50257,
 }
 
-const getTextSample = async () => {
+const getTokenizedSample = async () => {
     const loaded = await new node.data.NodeTextLoader(wikitextTask).loadAll(inputFiles, config)
     const ds = loaded.train.dataset as TokenizedDataset
     const iter = await ds.iterator()
@@ -60,7 +60,7 @@ const getRawTokenizedSample = async () => {
 
 describe('text loader', () => {
     it('loads a batched sample', async () => {
-        const { value, done } = await getTextSample()
+        const { value, done } = await getTokenizedSample()
         const { xs, ys } = value
         const x = xs.flatten()
         const y = ys.argMax(2).flatten() // get indices of max values along last axis
@@ -74,7 +74,7 @@ describe('text loader', () => {
 
     it('dataset is tokenizez properly', async () => {
         const tokens = await getRawTokenizedSample()
-        const { value } = await getTextSample()
+        const { value } = await getTokenizedSample()
         /**
          * Flatten the batch by taking the first token in x and the rest in y, since y is x shifted by 1 + 1 token
          * e.g. [a, b, c, d, e, f] -> x = [a, b, c, d, e] and y = [b, c, d, e, f]

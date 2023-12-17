@@ -5,15 +5,22 @@ import {
     TextLoader,
     TokenizedDataset,
 } from '@epfml/discojs-core/src/dataset/data_loader/text_loader'
+import { DataSplit, Dataset } from '@epfml/discojs-core/src/dataset'
+import { List } from 'immutable'
 
 type TokenizedSample = {
     xs: number[]
     ys: number[]
 }
 
+export type TextSource = {
+    train: string[]
+    validation?: string[]
+}
+
 type AsyncTokenizedGenerator = AsyncGenerator<TokenizedSample, void, unknown>
 
-export class NodeTextLoader extends TextLoader {
+export class NodeTextLoader extends TextLoader<TextSource> {
     getFileStream(source: string, config: TextConfig) {
         // blockSize + 1 = input size (size of x = blockSize, size of y = blockSize shifted right by 1, thus the + 1)
         // * batchSize to retrieve a batch at once
@@ -98,5 +105,27 @@ export class NodeTextLoader extends TextLoader {
             return value
         }
         return (await this.getBackboneDataset(config, requestNext)) as TokenizedDataset
+    }
+
+    async load(source: TextSource, config: TextConfig): Promise<TokenizedDataset> {
+        const src = source.train[0]
+        const ds = await this.loadDatasetFrom(src, config)
+        return ds.batch(config.batchSize) as TokenizedDataset
+    }
+
+    async loadAll(source: TextSource, config?: Partial<TextConfig>): Promise<DataSplit> {
+        const _config = Object.assign(TextLoader.DEFAULT_CONFIG, config || {})
+        const split: Partial<DataSplit> = {}
+        for await (const [k, files] of Object.entries(source)) {
+            console.log(files)
+            const datasets = await Promise.all(
+                files.map(async (source) => await this.load({ train: [source] }, _config))
+            )
+            let dataset = List(datasets).reduce((acc: Dataset, dataset) => acc.concatenate(dataset))
+            // dataset = config?.shuffle ? dataset.shuffle(BUFFER_SIZE) : dataset
+            const data = await this.createData(dataset)
+            ;(split as DataSplit)[k as keyof typeof split] = data
+        }
+        return split as DataSplit
     }
 }
