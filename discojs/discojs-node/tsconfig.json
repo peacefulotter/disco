@@ -25,5 +25,5 @@
         // "../discojs-core/**/*.ts", 
         "../gpt-tfjs/**/*.ts"
     ],
-    "exclude": ["./node_modules/**/*", "./dist/**/*", "**/*.spec.ts"]
+    "exclude": ["./node_modules/**/*", "./dist/**/*"]
 }
