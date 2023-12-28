@@ -17,5 +17,12 @@
   "bugs": {
     "url": "https://github.com/epfml/disco/issues"
   },
-  "homepage": "https://github.com/epfml/disco#readme"
+  "homepage": "https://github.com/epfml/disco#readme",
+  "dependencies": {
+    "@epfml/discojs-core": "file:../discojs-core"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.0.0",
+    "mocha": "^10.2.0"
+  }
 }
