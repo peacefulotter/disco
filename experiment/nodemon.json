@@ -1,0 +1,13 @@
+{
+    "watch": [
+        "**/*.ts",
+        "decs.d.ts",
+        ".../discojs/discojs-node/**/*.ts",
+        "../discojs/gpt-tfjs/**/*.ts"
+    ],
+    "ext": "ts",
+    "execMap": {
+        "ts": "bun --loader ts-node/esm -r tsconfig-paths/register -r ts-node/register "
+    },
+    "ignore": []
+}

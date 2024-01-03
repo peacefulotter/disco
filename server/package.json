@@ -16,7 +16,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@epfml/discojs-node": "^2.1.1",
     "@koush/wrtc": "0.5",
     "cors": "2",
     "express": "4",

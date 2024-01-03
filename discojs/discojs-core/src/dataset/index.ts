@@ -1,3 +1,4 @@
+export * as data from './data'
 export type { Dataset } from './dataset'
 export { DatasetBuilder } from './dataset_builder'
 export { ImageLoader, TabularLoader, DataLoader, TextLoader } from './data_loader'
