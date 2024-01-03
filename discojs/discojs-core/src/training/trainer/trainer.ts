@@ -18,6 +18,7 @@ type KeysMatching<T, V extends string> = {
     [K in keyof T]-?: K extends `${V}${infer Name}` ? K : never
 }[keyof T]
 
+export type Callback = (...args: any[]) => Promise<void> | void
 export type CallbackNames = KeysMatching<Trainer, 'on'>
 
 export abstract class Trainer {

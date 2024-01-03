@@ -1,8 +1,8 @@
 import { dataset, tf, Task } from '../..'
 import { Model } from './model'
-import { CallbackNames, Trainer } from '../trainer/trainer'
+import { Callback, CallbackNames, Trainer } from '../trainer/trainer'
 
-import { List, Map } from 'immutable'
+import { List } from 'immutable'
 
 export class TFJSModel extends Model {
     static callbackNames = List.of<CallbackNames>(
@@ -21,12 +21,15 @@ export class TFJSModel extends Model {
     async fit(trainer: Trainer, tuple: dataset.DataSplit): Promise<void> {
         const { training, validation } = dataset.data.data_split.extract(tuple)
 
+        const callbacks = TFJSModel.callbackNames.reduce((map, callback) => {
+            map[callback] = trainer[callback]
+            return map
+        }, {} as Record<CallbackNames, Callback>)
+
         await this.model.fitDataset(training, {
             epochs: this.task.trainingInformation.epochs,
             validationData: validation,
-            callbacks: Map(
-                TFJSModel.callbackNames.map((callback) => [callback, trainer[callback]])
-            ).toObject(),
+            callbacks,
         })
     }
 
