@@ -1,7 +1,6 @@
 import { readdir } from 'fs/promises'
 import path from 'path'
-import { data, Task, node } from '@epfml/discojs-node/src'
-import { TextConfig } from './src/dataset/data_loader'
+import { dataset, Task, node } from '@epfml/discojs-node/src'
 import { TOKENIZED_FILE_EXTENSION } from './core/preprocess'
 
 async function getDatasetSource(
@@ -22,7 +21,7 @@ async function getDatasetSource(
     ) as node.data.TextSource
 }
 
-export async function loadData(task: Task): Promise<data.DataSplit> {
+export async function loadData(task: Task): Promise<dataset.DataSplit> {
     // const dir = path.join('datasets', task.taskID)
     // const files = { train: 'wiki.train.raw.pp', valid: 'wiki.valid.raw.pp' }
 
@@ -33,7 +32,7 @@ export async function loadData(task: Task): Promise<data.DataSplit> {
 
     const root = path.join(import.meta.dir, 'datasets', 'wikitext-103')
     const source = await getDatasetSource(root, ['train', 'validation'])
-    const config: Partial<TextConfig> = {}
+    const config: Partial<dataset.TextConfig> = {}
 
     return await new node.data.NodeTextLoader(task).loadAll(source, config)
     // return {

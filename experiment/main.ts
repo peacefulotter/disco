@@ -1,4 +1,4 @@
-import { data, Disco, fetchTasks, Task } from '@epfml/discojs-node/src/'
+import { dataset, Disco, fetchTasks, Task } from '@epfml/discojs-node/src/'
 
 import { startServer } from './start_server'
 import { loadData } from './data'
@@ -7,7 +7,7 @@ import { loadData } from './data'
  * Example of discojs API, we load data, build the appropriate loggers, the disco object
  * and finally start training.
  */
-async function runUser(url: URL, task: Task, dataset: data.DataSplit): Promise<void> {
+async function runUser(url: URL, task: Task, dataset: dataset.DataSplit): Promise<void> {
     // Start federated training
     const disco = new Disco(task, { url })
     await disco.fit(dataset)
