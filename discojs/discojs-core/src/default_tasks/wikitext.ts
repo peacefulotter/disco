@@ -1,6 +1,5 @@
 import { training, Task, TaskProvider } from '../index.node'
-import { GPTModel } from '../training/model'
-import { GPTConfig } from '../training/model/gpt_model'
+import { GPTModel, type GPTConfig } from '../training/model'
 
 export const wikitext: TaskProvider = {
     getTask(): Task {
@@ -35,11 +34,20 @@ export const wikitext: TaskProvider = {
                     metrics: ['precision', 'mse'], // 'perplexity' doesnt exist
                 },
                 dataType: 'text',
-                preprocessingFunctions: [
-                    // preprocessing is done prior to training
-                    // data.TextPreprocessing.Tokenize,
-                    // data.TextPreprocessing.Padding,
-                ],
+                /**
+                 * preprocessing is done prior to training so it is not needed in my case
+                 * but otherwise, one can use the following template to use a custom tokenizer
+                 * and the predefined preprocessing functions
+                 */
+                // import tokenizer from 'gpt-tokenizer/model/text-davinci-003'
+                // ...
+                // tokenizer,
+                // preprocessingFunctions: [
+                //     data.TextPreprocessing.Tokenize,
+                //     data.TextPreprocessing.Padding,
+                // ],
+                // vocabSize: 50257
+                // blockSize: 64
                 scheme: 'Federated',
                 noiseScale: undefined,
                 decentralizedSecure: true,

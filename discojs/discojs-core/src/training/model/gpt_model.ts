@@ -4,8 +4,15 @@ import { Trainer } from '../trainer/trainer'
 
 import { model as gpt } from '@epfml/gpt-tfjs'
 
+// TODO: move this to an appropriate, generic and dedicated LLM file
+export interface Tokenizer {
+    encode: (lineToEncode: string, ...args: any[]) => number[]
+    decode: (inputTokensToDecode: Iterable<number>) => string
+}
+
 type GPT = gpt.GPTModelType
 
+// TODO: better type to avoid repetition between Task.trainingInformation and GPTConfig
 export type GPTConfig = {
     epochs?: number
     maxIter?: number

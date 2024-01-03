@@ -24,6 +24,7 @@
     "@tensorflow/tfjs": "^4.15.0",
     "@tensorflow/tfjs-node": "^4.15.0",
     "axios": "^1.6.2",
+    "gpt-tokenizer": "^2.1.2",
     "immutable": "^5.0.0-beta.4",
     "isomorphic-ws": "^5.0.0",
     "modelzoo": "^0.0.3",
