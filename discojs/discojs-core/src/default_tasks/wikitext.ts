@@ -1,8 +1,6 @@
-import { tf, dataset, Task, TaskProvider } from '../index.node'
-// FIXME: can't resolve ".."
-
-import { model } from 'gpt-tfjs'
-const { GPTLMHeadModel } = model
+import { training, Task, TaskProvider } from '../index.node'
+import { GPTModel } from '../training/model'
+import { GPTConfig } from '../training/model/gpt_model'
 
 export const wikitext: TaskProvider = {
     getTask(): Task {
@@ -30,28 +28,41 @@ export const wikitext: TaskProvider = {
                 epochs: 10,
                 roundDuration: 10,
                 validationSplit: 0.2,
-                batchSize: 10,
+                batchSize: 16,
                 modelCompileData: {
                     optimizer: 'sgd',
                     loss: 'categoricalCrossentropy',
-                    metrics: ['perplexity'],
+                    metrics: ['precision', 'mse'], // 'perplexity' doesnt exist
                 },
                 dataType: 'text',
                 preprocessingFunctions: [
-                    dataset.TextPreprocessing.Tokenize,
-                    dataset.TextPreprocessing.Padding,
+                    // preprocessing is done prior to training
+                    // data.TextPreprocessing.Tokenize,
+                    // data.TextPreprocessing.Padding,
                 ],
-                scheme: 'Decentralized',
+                scheme: 'Federated',
                 noiseScale: undefined,
                 decentralizedSecure: true,
                 minimumReadyPeers: 3,
                 maxShareValue: 100,
+                learningRate: 0.001,
             },
         }
     },
 
-    async getModel(): Promise<tf.LayersModel> {
-        const gpt = GPTLMHeadModel({})
-        return gpt.model
+    async getModel(): Promise<training.model.Model> {
+        const config: GPTConfig = {
+            debug: false,
+            verbose: false,
+            modelType: 'gpt-nano',
+            blockSize: 128,
+            lr: 0.001,
+            shuffle: NaN,
+            weightDecay: false,
+            embdDrop: 0.2,
+            bias: true,
+            vocabSize: 50257,
+        }
+        return new GPTModel(this.getTask(), config)
     },
 }
