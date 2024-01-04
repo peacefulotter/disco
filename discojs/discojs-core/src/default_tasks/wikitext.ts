@@ -1,5 +1,7 @@
 import { training, Task, TaskProvider } from '../index.node'
-import { GPTModel, type GPTConfig } from '../training/model'
+import { model as gpt } from '@epfml/gpt-tfjs'
+import { TFJSModel } from '../training/model'
+import { tf } from '..'
 
 export const wikitext: TaskProvider = {
     getTask(): Task {
@@ -59,7 +61,7 @@ export const wikitext: TaskProvider = {
     },
 
     async getModel(): Promise<training.model.Model> {
-        const config: GPTConfig = {
+        const config: gpt.GPTConfig = {
             debug: false,
             verbose: false,
             modelType: 'gpt-nano',
@@ -71,6 +73,7 @@ export const wikitext: TaskProvider = {
             bias: true,
             vocabSize: 50257,
         }
-        return new GPTModel(this.getTask(), config)
+        const model = new gpt.GPTLMHeadModel(config)
+        return new TFJSModel(this.getTask(), model as any as tf.LayersModel)
     },
 }

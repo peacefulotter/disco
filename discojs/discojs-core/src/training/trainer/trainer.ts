@@ -1,7 +1,6 @@
-import { tf, Memory, Task, TrainingInformant, dataset } from '../..'
+import { tf, Memory, Task, TrainingInformant, dataset, training } from '../..'
 import { RoundTracker } from './round_tracker'
 import { TrainerLogger, TrainerLog } from '../../logging/trainer_logger'
-import { Model } from '../model'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally (alone) or in a distributed way with collaborators. The Trainer works as follows:
@@ -36,7 +35,7 @@ export abstract class Trainer {
         public readonly task: Task,
         public readonly trainingInformant: TrainingInformant,
         public readonly memory: Memory,
-        public readonly model: Model
+        public readonly model: training.model.Model
     ) {
         this.trainerLogger = new TrainerLogger()
         this.roundTracker = new RoundTracker(task.trainingInformation.roundDuration)
@@ -118,7 +117,6 @@ export abstract class Trainer {
      */
     async fitModel(data: dataset.data.DataSplit): Promise<void> {
         this.resetStopTrainerState()
-
         await this.model.fit(this, data)
     }
 

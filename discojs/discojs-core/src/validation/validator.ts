@@ -10,6 +10,7 @@ import {
     Memory,
     ModelSource,
     Features,
+    training,
 } from '..'
 
 export class Validator {
@@ -52,6 +53,8 @@ export class Validator {
         const groundTruth: number[] = []
         const predictions: number[] = []
 
+        const m = model.toTfjs()
+
         let hits = 0
         await data
             .preprocess()
@@ -61,7 +64,7 @@ export class Validator {
                     const xs = e.xs as tf.Tensor
 
                     const ys = this.getLabel(e.ys as tf.Tensor)
-                    const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor)
+                    const pred = this.getLabel(m.predict(xs, { batchSize }) as tf.Tensor)
 
                     const currentFeatures = xs.arraySync()
 
@@ -116,13 +119,14 @@ export class Validator {
         }
 
         const model = await this.getModel()
+        const m = model.toTfjs()
         const predictions: number[] = []
 
         await data.dataset
             .batch(batchSize)
             .forEachAsync((e) =>
                 predictions.push(
-                    ...((model.predict(e as tf.Tensor, { batchSize: batchSize }) as tf.Tensor)
+                    ...((m.predict(e as tf.Tensor, { batchSize: batchSize }) as tf.Tensor)
                         .argMax(1)
                         .arraySync() as number[])
                 )
@@ -131,7 +135,7 @@ export class Validator {
         return predictions
     }
 
-    async getModel(): Promise<tf.LayersModel> {
+    async getModel(): Promise<training.model.Model> {
         if (this.source !== undefined && (await this.memory.contains(this.source))) {
             return await this.memory.getModel(this.source)
         }

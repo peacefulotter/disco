@@ -557,53 +557,80 @@ async function generate(model: any, idx: any, conf: any, callback: any) {
     return idxArr
 }
 
-const GPTModel = (config: any) => new GPTModel_(config)
-class GPTModel_ {
-    config: any
-    model: any
+/**
+ * tfjs does not export LazyIterator and Dataset...
+ */
+declare abstract class LazyIterator<T> {
+    abstract next(): Promise<IteratorResult<T>>
+}
 
-    constructor(config: any) {
-        this.config = config
-        this.model = GPT(config)
+declare abstract class Dataset<T> {
+    abstract iterator(): Promise<LazyIterator<T>>
+    size: number
+}
+
+class GPTModel extends tf.LayersModel {
+    constructor(protected readonly config: any) {
+        const gpt = GPT(config)
+        const { inputs, outputs, name } = gpt
+        super({ inputs, outputs, name })
+        Object.assign(this, gpt)
+    }
+
+    async fitDataset<T>(dataset: Dataset<T>, args: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
+        const config = { ...this.config, ...args }
+        await train(this, dataset, config)
+        return {} as tf.History
     }
 
     async load(modelPath: any) {
-        await this.model.loadWeights(modelPath)
-    }
-
-    async save(modelPath: any) {
-        await this.model.save(modelPath)
-    }
-
-    apply(inputs: any) {
-        return this.model.apply(inputs)
-    }
-
-    predict(inputs: any) {
-        return this.model.predict(inputs)
+        this.loadWeights(modelPath)
     }
 }
 
-const GPTLMHeadModel = (config: any) => new GPTLMHeadModel_(config)
-class GPTLMHeadModel_ extends GPTModel_ {
+class GPTLMHeadModel extends GPTModel {
     constructor(config: any) {
         super(config)
     }
 
-    async train(dataset: any, config: any) {
-        await train(this.model, dataset, config)
+    async generate(idx: any, conf: any, callback: any) {
+        return await generate(this, idx, conf, callback)
     }
 
-    async generate(...args: any[]) {
-        return await generate(this.model, args[0], args[1], args[2])
-    }
-
-    generateSync(...args: any[]) {
-        return generateSync(this.model, args[0], args[1], args[2])
+    generateSync(idx: any, conf: any, callback: any) {
+        return generateSync(this, idx, conf, callback)
     }
 }
 
-type GPTModelType = GPTLMHeadModel_
+// TODO: better type to avoid repetition between Task.trainingInformation and GPTConfig
+type GPTConfig = {
+    epochs?: number
+    maxIter?: number
+    batchSize?: number
+    blockSize?: number
+    shuffle?: boolean | number | 'batch'
+    lr?: number
+    weightDecay?: boolean | number
+    callbacks?: any[]
+    verbose?: boolean
+    bias?: boolean
+    debug?: boolean
+    embdDrop?: number
+    nLayer?: number
+    nHead?: number
+    nEmbd?: number
+    vocabSize?: number
+    tokEmb?: boolean
+    lmHead?: boolean
+    modelType:
+        | 'gpt2'
+        | 'gpt2-medium'
+        | 'gpt2-large'
+        | 'gpt2-xl'
+        | 'gpt-mini'
+        | 'gpt-micro'
+        | 'gpt-nano'
+}
 
 export {
     GELU,
@@ -613,8 +640,8 @@ export {
     Block,
     GPT,
     GPTModel,
-    type GPTModelType,
     GPTLMHeadModel,
+    type GPTConfig,
     generate,
     generateSync,
 }
