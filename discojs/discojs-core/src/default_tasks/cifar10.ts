@@ -1,4 +1,4 @@
-import { tf, Task, dataset, TaskProvider, training } from '..'
+import { tf, Task, dataset, TaskProvider, training, TrainingSchemes } from '..'
 
 export const cifar10: TaskProvider = {
     getTask(): Task {
@@ -37,7 +37,7 @@ export const cifar10: TaskProvider = {
                 IMAGE_H: 224,
                 IMAGE_W: 224,
                 LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                scheme: 'Decentralized',
+                scheme: TrainingSchemes.DECENTRALIZED,
                 noiseScale: undefined,
                 clippingRadius: 20,
                 decentralizedSecure: true,

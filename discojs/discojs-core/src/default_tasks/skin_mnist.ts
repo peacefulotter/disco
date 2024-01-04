@@ -1,4 +1,4 @@
-import { tf, dataset, training, Task, TaskProvider } from '..'
+import { tf, dataset, training, Task, TaskProvider, TrainingSchemes } from '..'
 
 export const skinMnist: TaskProvider = {
     getTask(): Task {
@@ -43,7 +43,7 @@ export const skinMnist: TaskProvider = {
                     'Vascular lesions',
                     'Dermatofibroma',
                 ],
-                scheme: 'Federated',
+                scheme: TrainingSchemes.FEDERATED,
                 noiseScale: undefined,
                 clippingRadius: undefined,
             },

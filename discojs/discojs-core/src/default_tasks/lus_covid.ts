@@ -1,4 +1,4 @@
-import { tf, dataset, training, Task, TaskProvider } from '..'
+import { tf, dataset, training, Task, TaskProvider, TrainingSchemes } from '..'
 
 export const lusCovid: TaskProvider = {
     getTask(): Task {
@@ -39,7 +39,7 @@ export const lusCovid: TaskProvider = {
                 preprocessingFunctions: [dataset.ImagePreprocessing.Resize],
                 LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
                 dataType: 'image',
-                scheme: 'Decentralized',
+                scheme: TrainingSchemes.DECENTRALIZED,
                 noiseScale: undefined,
                 clippingRadius: 20,
                 decentralizedSecure: true,

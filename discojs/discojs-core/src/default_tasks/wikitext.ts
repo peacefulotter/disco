@@ -1,7 +1,6 @@
-import { training, Task, TaskProvider } from '../index.node'
+import { tf, training, Task, TaskProvider, TrainingSchemes } from '..'
 import { model as gpt } from '@epfml/gpt-tfjs'
 import { TFJSModel } from '../training/model'
-import { tf } from '..'
 
 export const wikitext: TaskProvider = {
     getTask(): Task {
@@ -50,7 +49,7 @@ export const wikitext: TaskProvider = {
                 // ],
                 // vocabSize: 50257
                 // blockSize: 64
-                scheme: 'Federated',
+                scheme: TrainingSchemes.FEDERATED,
                 noiseScale: undefined,
                 decentralizedSecure: true,
                 minimumReadyPeers: 3,

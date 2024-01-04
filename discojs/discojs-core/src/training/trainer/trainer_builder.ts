@@ -38,6 +38,8 @@ export class TrainerBuilder {
     ): Promise<Trainer> {
         const model = await this.getModel(client)
 
+        console.log('BUILDER', distributed, typeof this.trainingInformant)
+
         if (distributed) {
             return new DistributedTrainer(
                 this.task,

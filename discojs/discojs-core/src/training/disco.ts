@@ -40,9 +40,10 @@ export class Disco {
     private readonly trainer: Promise<Trainer>
 
     constructor(task: Task, options: DiscoOptions) {
+        console.log(task.trainingInformation.scheme)
+
         if (options.scheme === undefined) {
-            options.scheme =
-                TrainingSchemes[task.trainingInformation.scheme as keyof typeof TrainingSchemes]
+            options.scheme = task.trainingInformation.scheme
         }
         if (options.aggregator === undefined) {
             options.aggregator = new MeanAggregator(task)
@@ -75,6 +76,7 @@ export class Disco {
                     break
             }
         }
+
         if (options.informant === undefined) {
             switch (options.scheme) {
                 case TrainingSchemes.FEDERATED:
@@ -88,6 +90,7 @@ export class Disco {
                     break
             }
         }
+
         if (options.logger === undefined) {
             options.logger = new ConsoleLogger()
         }

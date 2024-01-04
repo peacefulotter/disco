@@ -1,4 +1,4 @@
-import { tf, dataset, training, Task, TaskProvider } from '..'
+import { tf, dataset, training, Task, TaskProvider, TrainingSchemes } from '..'
 import { Range } from 'immutable'
 import { LabelTypeEnum } from '../task/label_type'
 
@@ -39,7 +39,7 @@ export const geotags: TaskProvider = {
                 IMAGE_W: 224,
                 preprocessingFunctions: [dataset.ImagePreprocessing.Resize],
                 LABEL_LIST: Range(0, 127).map(String).toArray(),
-                scheme: 'Federated',
+                scheme: TrainingSchemes.FEDERATED,
                 noiseScale: undefined,
                 clippingRadius: 20,
                 decentralizedSecure: true,

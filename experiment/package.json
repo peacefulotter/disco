@@ -4,7 +4,7 @@
   "type": "module",
   "main": "main.ts",
   "scripts": {
-    "dev": "bun --hot main.ts",
+    "dev": "bun --bun main.ts",
     "dev:nodemon": "nodemon --inspect main.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -1,4 +1,4 @@
-import { dataset, training, Task, TaskProvider } from '..'
+import { dataset, training, Task, TaskProvider, TrainingSchemes } from '..'
 
 export const simpleFace: TaskProvider = {
     getTask(): Task {
@@ -36,7 +36,7 @@ export const simpleFace: TaskProvider = {
                 IMAGE_H: 200,
                 IMAGE_W: 200,
                 LABEL_LIST: ['child', 'adult'],
-                scheme: 'Federated', // secure aggregation not yet implemented for federated
+                scheme: TrainingSchemes.FEDERATED, // secure aggregation not yet implemented for federated
                 noiseScale: undefined,
                 clippingRadius: undefined,
             },

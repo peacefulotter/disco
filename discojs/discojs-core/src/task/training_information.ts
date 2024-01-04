@@ -1,3 +1,4 @@
+import { TrainingSchemes } from '..'
 import { AggregatorChoice } from '../aggregator/get'
 import { Preprocessing } from '../dataset/data/preprocessing'
 import { Tokenizer } from '../training/model'
@@ -159,7 +160,7 @@ export interface TrainingInformation {
     // learningRate: learning rate for the optimizer
     learningRate?: number
     // scheme: Distributed training scheme, i.e. Federated and Decentralized
-    scheme: string
+    scheme: TrainingSchemes
     // noiseScale: Differential Privacy (DP): Affects the variance of the Gaussian noise added to the models / model updates.
     // Number or undefined. If undefined, then no noise will be added.
     noiseScale?: number
