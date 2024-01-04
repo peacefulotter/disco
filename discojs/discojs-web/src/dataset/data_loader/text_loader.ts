@@ -1,4 +1,4 @@
-import { tf, data } from '../..'
+import { tf, dataset } from '../..'
 import { TextConfig, TextLoader } from '@epfml/discojs-core/src/dataset/data_loader/text_loader'
 
 export class WebTextLoader extends TextLoader<File, tf.data.TextLineDataset> {
@@ -10,7 +10,7 @@ export class WebTextLoader extends TextLoader<File, tf.data.TextLineDataset> {
     async loadAll(
         source: File[],
         config?: Partial<TextConfig> | undefined
-    ): Promise<data.DataSplit> {
+    ): Promise<dataset.DataSplit> {
         // TODO: multiple source or just one?
         // TODO: if one source, just return the train dataset?
         // TODO: return a TextLineDataset and not a TokenizedDataset??
@@ -18,10 +18,10 @@ export class WebTextLoader extends TextLoader<File, tf.data.TextLineDataset> {
         const datasets = await Promise.all(
             source.map(async (s) => await this.load(s, config as TextConfig))
         )
-        const dataset = datasets[0]
+        const ds = datasets[0]
         return {
-            train: await data.TextData.init(dataset, this.task),
-            validation: await data.TextData.init(dataset, this.task),
+            train: await dataset.TextData.init(ds, this.task),
+            validation: await dataset.TextData.init(ds, this.task),
         }
     }
 }

@@ -1,1 +1,1 @@
-export * as data from './dataset/data_loader'
+export * as dataset from './dataset'

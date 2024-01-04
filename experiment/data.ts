@@ -5,8 +5,8 @@ import { TOKENIZED_FILE_EXTENSION } from './core/preprocess'
 
 async function getDatasetSource(
     root: string,
-    splits: (keyof node.data.TextSource)[]
-): Promise<node.data.TextSource> {
+    splits: (keyof node.dataset.loader.TextSource)[]
+): Promise<node.dataset.loader.TextSource> {
     console.log('Preprocessed dataset located at:', root)
     const files = await readdir(root)
     console.log('Found', files.length, 'files in dataset under', root)
@@ -18,7 +18,7 @@ async function getDatasetSource(
                 .map((f) => path.join(root, f))
             return [split, files_path]
         })
-    ) as node.data.TextSource
+    ) as node.dataset.loader.TextSource
 }
 
 export async function loadData(task: Task): Promise<dataset.DataSplit> {
@@ -32,9 +32,9 @@ export async function loadData(task: Task): Promise<dataset.DataSplit> {
 
     const root = path.join(import.meta.dir, 'datasets', 'wikitext-103')
     const source = await getDatasetSource(root, ['train', 'validation'])
-    const config: Partial<dataset.TextConfig> = {}
+    const config: Partial<dataset.loader.TextConfig> = {}
 
-    return await new node.data.NodeTextLoader(task).loadAll(source, config)
+    return await new node.dataset.loader.NodeTextLoader(task).loadAll(source, config)
     // return {
     //     train: await getData('train'),
     //     validation: await getData('valid'),

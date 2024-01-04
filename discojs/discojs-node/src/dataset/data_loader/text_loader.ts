@@ -1,11 +1,10 @@
-import { tf } from '../..'
+import { tf, dataset } from '../..'
 import fs from 'node:fs'
 import {
     TextConfig,
     TextLoader,
     TokenizedDataset,
 } from '@epfml/discojs-core/src/dataset/data_loader/text_loader'
-import { DataSplit, Dataset } from '@epfml/discojs-core/src/dataset'
 import { List } from 'immutable'
 
 type TokenizedSample = {
@@ -113,19 +112,21 @@ export class NodeTextLoader extends TextLoader<TextSource, TokenizedDataset> {
         return ds // .batch(config.batchSize) as TokenizedDataset // batch is taken care by the Trainer
     }
 
-    async loadAll(source: TextSource, config?: Partial<TextConfig>): Promise<DataSplit> {
+    async loadAll(source: TextSource, config?: Partial<TextConfig>): Promise<dataset.DataSplit> {
         const _config = this.resolveConfig(config)
-        const split: Partial<DataSplit> = {}
+        const split: Partial<dataset.DataSplit> = {}
         for await (const [k, files] of Object.entries(source)) {
             console.log(files)
             const datasets = await Promise.all(
                 files.map(async (source) => await this.load({ train: [source] }, _config))
             )
-            let dataset = List(datasets).reduce((acc: Dataset, dataset) => acc.concatenate(dataset))
+            let dataset = List(datasets).reduce((acc: dataset.Dataset, dataset) =>
+                acc.concatenate(dataset)
+            )
             // dataset = config?.shuffle ? dataset.shuffle(BUFFER_SIZE) : dataset
             const data = await this.createData(dataset)
-            ;(split as DataSplit)[k as keyof typeof split] = data
+            ;(split as dataset.DataSplit)[k as keyof typeof split] = data
         }
-        return split as DataSplit
+        return split as dataset.DataSplit
     }
 }

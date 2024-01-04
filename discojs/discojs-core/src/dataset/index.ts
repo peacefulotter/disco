@@ -1,7 +1,7 @@
 export * as data from './data'
+export * as loader from './data_loader'
 export type { Dataset } from './dataset'
 export { DatasetBuilder } from './dataset_builder'
-export { ImageLoader, TabularLoader, DataLoader, TextLoader, type TextConfig } from './data_loader'
 export type { DataSplit } from './data'
 export {
     Data,
