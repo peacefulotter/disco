@@ -20,10 +20,10 @@ export class DistributedTrainer extends Trainer {
      * DistributedTrainer constructor, accepts same arguments as Trainer and in additional also a client who takes care of communicating weights.
      */
     constructor(
-        public readonly task: Task,
-        public readonly trainingInformant: TrainingInformant,
-        public readonly memory: Memory,
-        public readonly model: training.model.Model,
+        task: Task,
+        trainingInformant: TrainingInformant,
+        memory: Memory,
+        model: training.model.Model,
         private readonly client: clients.Client
     ) {
         console.log('DistributedTrainer constructor', typeof trainingInformant)

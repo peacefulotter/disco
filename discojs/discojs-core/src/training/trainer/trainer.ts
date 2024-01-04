@@ -17,10 +17,17 @@ type KeysMatching<T, V extends string> = {
     [K in keyof T]-?: K extends `${V}${infer Name}` ? K : never
 }[keyof T]
 
-export type Callback = (...args: any[]) => Promise<void> | void
-export type CallbackNames = KeysMatching<Trainer, 'on'>
+// From tfjs base_callbacks.d.ts
+export interface Callbacks {
+    onEpochBegin: (epoch: number, logs?: tf.Logs) => Promise<void>
+    onEpochEnd: (epoch: number, logs?: tf.Logs) => Promise<void>
+    onBatchBegin: (batch: number, logs?: tf.Logs) => Promise<void>
+    onBatchEnd: (batch: number, logs?: tf.Logs) => Promise<void>
+    onTrainBegin: (logs?: tf.Logs) => Promise<void>
+    onTrainEnd: (logs?: tf.Logs) => Promise<void>
+}
 
-export abstract class Trainer {
+export abstract class Trainer implements Callbacks {
     public readonly roundTracker: RoundTracker
 
     private stopTrainingRequested = false
@@ -74,12 +81,12 @@ export abstract class Trainer {
         }
     }
 
-    onEpochBegin(epoch: number, logs?: tf.Logs): void {}
+    async onEpochBegin(epoch: number, logs?: tf.Logs): Promise<void> {}
 
     /**
      * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
      */
-    onEpochEnd(epoch: number, logs?: tf.Logs): void {
+    async onEpochEnd(epoch: number, logs?: tf.Logs): Promise<void> {
         this.trainerLogger.onEpochEnd(epoch, logs)
 
         if (logs !== undefined && !isNaN(logs.acc) && !isNaN(logs.val_acc)) {
