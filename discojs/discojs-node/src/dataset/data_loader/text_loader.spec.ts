@@ -28,7 +28,7 @@ const wikitextTask: Task = {
     trainingInformation: {},
 } as Task
 
-const config: TextConfig = {
+const config: TextConfig & { batchSize: number } = {
     blockSize: 3,
     batchSize: 2,
     vocabSize: 50257,

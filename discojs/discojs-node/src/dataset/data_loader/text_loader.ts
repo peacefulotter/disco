@@ -1,4 +1,4 @@
-import { tf, dataset } from '../..'
+import { tf, dataset, Task } from '../..'
 import fs from 'node:fs'
 import {
     TextConfig,
@@ -20,11 +20,18 @@ export type TextSource = {
 type AsyncTokenizedGenerator = AsyncGenerator<TokenizedSample, void, unknown>
 
 export class NodeTextLoader extends TextLoader<TextSource, TokenizedDataset> {
+    batchSize: number
+
+    constructor(protected task: Task) {
+        super(task)
+        this.batchSize = this.task.trainingInformation.batchSize
+    }
+
     getFileStream(source: string, config: TextConfig) {
         // blockSize + 1 = input size (size of x = blockSize, size of y = blockSize shifted right by 1, thus the + 1)
         // * batchSize to retrieve a batch at once
         // * 2 because tokens are stored as uint16 and thus require 2 bytes
-        const highWaterMark = (config.blockSize + 1) * config.batchSize * 2 // (config.blockSize + config.batchSize + 1) * 2
+        const highWaterMark = (config.blockSize + 1) * this.batchSize * 2 // (config.blockSize + config.batchSize + 1) * 2
         return fs.createReadStream(source, {
             highWaterMark, // set this to seq length * 2 because we store uint16,
         })
@@ -64,12 +71,14 @@ export class NodeTextLoader extends TextLoader<TextSource, TokenizedDataset> {
             return (high << 8) | low
         }
 
+        const batchSize = this.batchSize
+
         async function* generator(): AsyncTokenizedGenerator {
             while (true) {
                 const chunk = await requestNext()
                 if (!chunk) break
 
-                for (let i = 0; i < config.batchSize; i++) {
+                for (let i = 0; i < batchSize; i++) {
                     const xs = []
                     const ys = []
                     for (let j = 0; j < sampleSize; j++) {
@@ -109,7 +118,7 @@ export class NodeTextLoader extends TextLoader<TextSource, TokenizedDataset> {
     async load(source: TextSource, config: TextConfig): Promise<TokenizedDataset> {
         const src = source.train[0]
         const ds = await this.loadDatasetFrom(src, config)
-        return ds // .batch(config.batchSize) as TokenizedDataset // batch is taken care by the Trainer
+        return ds
     }
 
     async loadAll(source: TextSource, config?: Partial<TextConfig>): Promise<dataset.DataSplit> {

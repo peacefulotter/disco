@@ -5,7 +5,6 @@ import { DataConfig, DataLoader } from '.'
 
 export interface TextConfig extends DataConfig {
     blockSize: number
-    batchSize: number // TODO: pass task to loader to have trainingInfo.batchSize
     vocabSize: number
 }
 
@@ -39,7 +38,6 @@ export abstract class TextLoader<Source, LoadDataset extends Dataset> extends Da
     // Default config required to define TextConfig but leave DataConfig optional
     static DEFAULT_CONFIG: Required<Omit<TextConfig, keyof DataConfig>> & DataConfig = {
         blockSize: 16,
-        batchSize: 4,
         vocabSize: 50257,
     }
 
