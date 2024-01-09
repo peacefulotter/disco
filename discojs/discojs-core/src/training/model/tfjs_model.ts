@@ -7,12 +7,12 @@ export class TFJSModel extends Model {
         const { training, validation } = dataset.data.data_split.extract(tuple)
 
         const callbacks: Callbacks = {
-            onTrainBegin: trainer.onTrainBegin,
-            onTrainEnd: trainer.onTrainEnd,
-            onEpochBegin: trainer.onEpochBegin,
-            onEpochEnd: trainer.onEpochEnd,
-            onBatchBegin: trainer.onBatchBegin,
-            onBatchEnd: trainer.onBatchEnd,
+            onTrainBegin: trainer.onTrainBegin.bind(trainer),
+            onTrainEnd: trainer.onTrainEnd.bind(trainer),
+            onEpochBegin: trainer.onEpochBegin.bind(trainer),
+            onEpochEnd: trainer.onEpochEnd.bind(trainer),
+            onBatchBegin: trainer.onBatchBegin.bind(trainer),
+            onBatchEnd: trainer.onBatchEnd.bind(trainer),
         }
 
         await this.model.fitDataset(training, {

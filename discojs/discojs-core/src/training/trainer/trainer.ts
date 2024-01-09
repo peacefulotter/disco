@@ -12,11 +12,6 @@ import { TrainerLogger, TrainerLog } from '../../logging/trainer_logger'
  * a round has ended we use the roundTracker object.
  */
 
-// Get all keys of type T whose name extends type V
-type KeysMatching<T, V extends string> = {
-    [K in keyof T]-?: K extends `${V}${infer Name}` ? K : never
-}[keyof T]
-
 // From tfjs base_callbacks.d.ts
 export interface Callbacks {
     onEpochBegin: (epoch: number, logs?: tf.Logs) => Promise<void>
