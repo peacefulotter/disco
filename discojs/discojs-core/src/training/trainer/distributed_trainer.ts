@@ -26,16 +26,12 @@ export class DistributedTrainer extends Trainer {
         model: training.model.Model,
         private readonly client: clients.Client
     ) {
-        console.log('DistributedTrainer constructor', typeof trainingInformant)
-
         super(task, trainingInformant, memory, model)
         this.aggregator = this.client.aggregator
         this.aggregator.setModel(model)
     }
 
     async onTrainBegin(logs?: tf.Logs): Promise<void> {
-        console.log('distributedtrainer on train begin', typeof this.trainingInformant)
-
         await super.onTrainBegin(logs)
 
         const weights = WeightsContainer.from(this.model)

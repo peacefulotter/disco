@@ -52,7 +52,6 @@ export class Decentralized extends Server {
         model: training.model.Model,
         req: express.Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>
     ): void {
-        // TODO @s314cy: add to task definition, to be used as threshold in aggregator
         const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
 
         // Peer id of the message sender
