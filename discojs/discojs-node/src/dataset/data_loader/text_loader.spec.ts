@@ -23,7 +23,7 @@ const inputFiles = {
 }
 
 const wikitextTask: Task = {
-    taskID: 'wikitext-103',
+    id: 'wikitext-103',
     displayInformation: {},
     trainingInformation: {},
 } as Task

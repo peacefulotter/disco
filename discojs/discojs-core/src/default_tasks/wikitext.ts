@@ -5,7 +5,7 @@ import { TFJSModel } from '../training/model'
 export const wikitext: TaskProvider = {
     getTask(): Task {
         return {
-            taskID: 'wikitext-103',
+            id: 'wikitext-103',
             displayInformation: {
                 taskTitle: 'wikitext-103-raw',
                 summary: {
@@ -28,7 +28,7 @@ export const wikitext: TaskProvider = {
                 epochs: 10,
                 roundDuration: 10,
                 validationSplit: 0.2,
-                batchSize: 16,
+                batchSize: 4,
                 modelCompileData: {
                     optimizer: 'sgd',
                     loss: 'categoricalCrossentropy',

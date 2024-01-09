@@ -12,7 +12,7 @@ const DIRS = {
 }
 
 const cifar10Mock: Task = {
-  taskID: 'cifar10',
+  id: 'cifar10',
   displayInformation: {},
   trainingInformation: {
     IMAGE_H: 32,
@@ -22,7 +22,7 @@ const cifar10Mock: Task = {
 } as unknown as Task
 
 const mnistMock: Task = {
-  taskID: 'mnist',
+  id: 'mnist',
   displayInformation: {},
   trainingInformation: {
     IMAGE_H: 28,

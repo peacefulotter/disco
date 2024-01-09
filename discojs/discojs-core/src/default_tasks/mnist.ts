@@ -3,7 +3,7 @@ import { tf, training, Task, TaskProvider, TrainingSchemes } from '..'
 export const mnist: TaskProvider = {
     getTask(): Task {
         return {
-            taskID: 'mnist',
+            id: 'mnist',
             displayInformation: {
                 taskTitle: 'MNIST',
                 summary: {

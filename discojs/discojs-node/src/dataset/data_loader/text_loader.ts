@@ -1,32 +1,14 @@
-import { tf, dataset, Task } from '../..'
+import { dataset } from '../..'
 import fs from 'node:fs'
 import {
+    TextSource,
     TextConfig,
     TextLoader,
     TokenizedDataset,
 } from '@epfml/discojs-core/src/dataset/data_loader/text_loader'
 import { List } from 'immutable'
 
-type TokenizedSample = {
-    xs: number[]
-    ys: number[]
-}
-
-export type TextSource = {
-    train: string[]
-    validation?: string[]
-}
-
-type AsyncTokenizedGenerator = AsyncGenerator<TokenizedSample, void, unknown>
-
-export class NodeTextLoader extends TextLoader<TextSource, TokenizedDataset> {
-    batchSize: number
-
-    constructor(protected task: Task) {
-        super(task)
-        this.batchSize = this.task.trainingInformation.batchSize
-    }
-
+export class NodeTextLoader extends TextLoader {
     getFileStream(source: string, config: TextConfig) {
         // blockSize + 1 = input size (size of x = blockSize, size of y = blockSize shifted right by 1, thus the + 1)
         // * batchSize to retrieve a batch at once
@@ -61,46 +43,6 @@ export class NodeTextLoader extends TextLoader<TextSource, TokenizedDataset> {
         }
     }
 
-    async getBackboneDataset(config: TextConfig, requestNext: () => Promise<number[]>) {
-        const { vocabSize } = config
-        const sampleSize = config.blockSize + 1
-
-        const toUInt16 = (low: number, high: number) => {
-            low &= 0xff
-            high &= 0xff
-            return (high << 8) | low
-        }
-
-        const batchSize = this.batchSize
-
-        async function* generator(): AsyncTokenizedGenerator {
-            while (true) {
-                const chunk = await requestNext()
-                if (!chunk) break
-
-                for (let i = 0; i < batchSize; i++) {
-                    const xs = []
-                    const ys = []
-                    for (let j = 0; j < sampleSize; j++) {
-                        const idx = (i * sampleSize + j) * 2
-                        const low = chunk[idx]
-                        const high = chunk[idx + 1]
-                        const token = toUInt16(low, high)
-                        if (j < sampleSize - 1) xs.push(token)
-                        if (j > 0) ys.push(token)
-                    }
-                    yield { xs, ys }
-                }
-            }
-        }
-
-        // cast as any because tf.data.generator does not take a type AsyncGenerator (but it works)
-        return tf.data.generator(generator as any).map((v: any & TokenizedSample) => ({
-            xs: tf.tensor1d(v.xs, 'int32'),
-            ys: tf.oneHot(v.ys, vocabSize),
-        }))
-    }
-
     async loadDatasetFrom(source: string, config: TextConfig): Promise<TokenizedDataset> {
         const prefix = 'file://'
         if (!source.startsWith(prefix)) {
@@ -112,12 +54,12 @@ export class NodeTextLoader extends TextLoader<TextSource, TokenizedDataset> {
             const { value } = await stream.next()
             return value
         }
-        return (await this.getBackboneDataset(config, requestNext)) as TokenizedDataset
+        const dataset = await this.getCoreDataset(config, requestNext)
+        return dataset
     }
 
-    async load(source: TextSource, config: TextConfig): Promise<TokenizedDataset> {
-        const src = source.train[0]
-        const ds = await this.loadDatasetFrom(src, config)
+    async load(source: string, config: TextConfig): Promise<TokenizedDataset> {
+        const ds = await this.loadDatasetFrom(source, config)
         return ds
     }
 
@@ -126,7 +68,7 @@ export class NodeTextLoader extends TextLoader<TextSource, TokenizedDataset> {
         const split: Partial<dataset.DataSplit> = {}
         for await (const [k, files] of Object.entries(source)) {
             const datasets = await Promise.all(
-                files.map(async (source) => await this.load({ train: [source] }, _config))
+                files.map(async (src) => await this.load(src, _config))
             )
             const dataset = List(datasets).reduce((acc: dataset.Dataset, dataset) =>
                 acc.concatenate(dataset)

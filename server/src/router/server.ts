@@ -35,7 +35,7 @@ export abstract class Server {
     }
 
     private onNewTask(task: Task, model: training.model.Model): void {
-        this.tasks.push(task.taskID)
+        this.tasks.push(task.id)
         this.initTask(task, model)
 
         this.ownRouter.ws(this.buildRoute(task), (ws, req) => {

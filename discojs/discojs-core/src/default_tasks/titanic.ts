@@ -3,7 +3,7 @@ import { tf, training, Task, TaskProvider, TrainingSchemes } from '..'
 export const titanic: TaskProvider = {
     getTask(): Task {
         return {
-            taskID: 'titanic',
+            id: 'titanic',
             displayInformation: {
                 taskTitle: 'Titanic',
                 summary: {

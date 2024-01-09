@@ -47,8 +47,8 @@ export class Tasks {
     }
 
     onNewTask(task: Task, model: tf.LayersModel): void {
-        this.ownRouter.get(`/${task.taskID}/:file`, (req, res, next) => {
-            this.getLatestModel(task.taskID, req, res).catch(next)
+        this.ownRouter.get(`/${task.id}/:file`, (req, res, next) => {
+            this.getLatestModel(task.id, req, res).catch(next)
         })
 
         this.tasksAndModels = this.tasksAndModels.add([task, model])
@@ -87,7 +87,7 @@ export class Tasks {
             response.status(404)
             return
         }
-        const taskAndModel = this.tasksAndModels.find(([t, _]) => t.taskID === taskID)
+        const taskAndModel = this.tasksAndModels.find(([t, _]) => t.id === taskID)
         if (taskAndModel === undefined) {
             response.status(404)
             return

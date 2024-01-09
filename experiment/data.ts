@@ -22,7 +22,7 @@ async function getDatasetSource(
 }
 
 export async function loadData(task: Task): Promise<dataset.DataSplit> {
-    // const dir = path.join('datasets', task.taskID)
+    // const dir = path.join('datasets', task.id)
     // const files = { train: 'wiki.train.raw.pp', valid: 'wiki.valid.raw.pp' }
 
     // const getData = async (split: string) => {

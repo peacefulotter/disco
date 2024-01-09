@@ -4,44 +4,46 @@ import { isDigest, Digest } from './digest'
 
 export type TaskID = string
 
-export function isTaskID (obj: unknown): obj is TaskID {
-  return typeof obj === 'string'
+export function isTaskID(obj: unknown): obj is TaskID {
+    return typeof obj === 'string'
 }
 
-export function isTask (raw: unknown): raw is Task {
-  if (typeof raw !== 'object') {
-    return false
-  }
-  if (raw === null) {
-    return false
-  }
+export function isTask(raw: unknown): raw is Task {
+    if (typeof raw !== 'object') {
+        return false
+    }
+    if (raw === null) {
+        return false
+    }
 
-  const { taskID, digest, displayInformation, trainingInformation } = raw as
-    Record<'taskID' | 'digest' | 'displayInformation' | 'trainingInformation', unknown | undefined>
+    const { id, digest, displayInformation, trainingInformation } = raw as Record<
+        'id' | 'digest' | 'displayInformation' | 'trainingInformation',
+        unknown | undefined
+    >
 
-  if (typeof taskID !== 'string') {
-    return false
-  }
-  if (digest !== undefined && !isDigest(digest)) {
-    return false
-  }
-  if (!isDisplayInformation(displayInformation)) {
-    return false
-  }
-  if (!isTrainingInformation(trainingInformation)) {
-    return false
-  }
+    if (!isTaskID(id)) {
+        return false
+    }
+    if (digest !== undefined && !isDigest(digest)) {
+        return false
+    }
+    if (!isDisplayInformation(displayInformation)) {
+        return false
+    }
+    if (!isTrainingInformation(trainingInformation)) {
+        return false
+    }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _: Task = { taskID, displayInformation, trainingInformation }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _: Task = { id, displayInformation, trainingInformation }
 
-  return true
+    return true
 }
 
 export interface Task {
-  // TODO rename to ID
-  taskID: TaskID
-  digest?: Digest
-  displayInformation: DisplayInformation
-  trainingInformation: TrainingInformation
+    // TODO rename to ID
+    id: TaskID
+    digest?: Digest
+    displayInformation: DisplayInformation
+    trainingInformation: TrainingInformation
 }

@@ -10,12 +10,16 @@ export interface DataConfig {
     inference?: boolean
 }
 
-export abstract class DataLoader<Source, Config extends DataConfig = DataConfig> {
+export abstract class DataLoader<
+    Source,
+    Sources = Source | Source[],
+    Config extends DataConfig = DataConfig
+> {
     constructor(protected task: Task) {}
 
     abstract createData(dataset: Dataset, size?: number): Promise<Data>
 
     abstract load(source: Source, config: Config): Promise<Dataset>
 
-    abstract loadAll(sources: Source | Source[], config: Config): Promise<DataSplit>
+    abstract loadAll(sources: Sources, config: Config): Promise<DataSplit>
 }

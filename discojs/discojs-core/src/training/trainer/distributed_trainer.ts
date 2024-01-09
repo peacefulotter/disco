@@ -67,7 +67,7 @@ export class DistributedTrainer extends Trainer {
         }
 
         await this.memory.updateWorkingModel(
-            { taskID: this.task.taskID, name: this.task.trainingInformation.modelID },
+            { taskID: this.task.id, name: this.task.trainingInformation.modelID },
             this.model.toTfjs()
         )
     }

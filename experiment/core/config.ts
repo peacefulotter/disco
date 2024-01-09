@@ -37,7 +37,7 @@ export const configModels = {
 const modelType: Model = 'gpt-nano'
 const model = configModels[modelType]
 const dataset = 'wikitext-103'
-const batchSize = 8
+const batchSize = 4
 const blockSize = 128 // = sequence length
 const lr = 0.001
 const maxIter = 10
@@ -59,7 +59,7 @@ const baseConfig = {
     optimizer: 'adamw',
     gradClip: 1,
     scheduler: null,
-    embdDrop: 0.2,
+    dropout: 0.2,
     bias: true,
     numWorkers: 0,
     vocabSize: 50257,
@@ -73,7 +73,8 @@ const baseConfig = {
 
 const config: Config = {
     ...baseConfig,
-    residDrop: baseConfig.embdDrop,
+    embdDrop: baseConfig.dropout,
+    residDrop: baseConfig.dropout,
     wandbName: `${modelType}_${dataset}_bs=${batchSize}_seq=${blockSize}_lr=${lr}_iter=${maxIter}`,
 } as const
 

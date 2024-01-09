@@ -3,7 +3,7 @@ import { tf, dataset, training, Task, TaskProvider, TrainingSchemes } from '..'
 export const skinMnist: TaskProvider = {
     getTask(): Task {
         return {
-            taskID: 'skin_mnist',
+            id: 'skin_mnist',
             displayInformation: {
                 taskTitle: 'Skin disease classification',
                 summary: {

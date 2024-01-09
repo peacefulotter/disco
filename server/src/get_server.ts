@@ -51,7 +51,7 @@ export class Disco {
         console.table(
             Array.from(this.tasksAndModels.tasksAndModels).map((t) => {
                 return {
-                    ID: t[0].taskID,
+                    ID: t[0].id,
                     Title: t[0].displayInformation.taskTitle,
                     'Data Type': t[0].trainingInformation.dataType,
                     Scheme: t[0].trainingInformation.scheme,

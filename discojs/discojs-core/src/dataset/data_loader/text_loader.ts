@@ -1,4 +1,4 @@
-import { tf } from '../../'
+import { Task, tf } from '../../'
 import { Dataset } from '../dataset'
 import { TextData, Data, DataSplit } from '../data'
 import { DataConfig, DataLoader } from '.'
@@ -6,6 +6,11 @@ import { DataConfig, DataLoader } from '.'
 export interface TextConfig extends DataConfig {
     blockSize: number
     vocabSize: number
+}
+
+type TokenizedSample = {
+    xs: number[]
+    ys: number[]
 }
 
 export type TokenizedTensorSample = {
@@ -25,29 +30,92 @@ export type TokenizedIterResult = IteratorResult<
     BatchedTokenizedTensorSample
 >
 
+export type TextSource = {
+    train: string[]
+    validation?: string[]
+}
+
+export type WSSearchParams = TextConfig & { file: string; taskId: string }
+
+type AsyncTokenizedGenerator = AsyncGenerator<TokenizedSample, void, unknown>
+
 /**
  * Text data loader whose instantiable implementation is delegated by the platform-dependent Disco subprojects, namely,
  * @epfml/discojs-web and @epfml/discojs-node.
  */
 // TODO: implement shuffle: dataset.shuffle(BUFFER_SIZE)
-// TODO: implement other things related to dataset.Method
-export abstract class TextLoader<Source, LoadDataset extends Dataset> extends DataLoader<
-    Source,
-    TextConfig
-> {
+export abstract class TextLoader extends DataLoader<string, TextSource, TextConfig> {
     // Default config required to define TextConfig but leave DataConfig optional
     static DEFAULT_CONFIG: Required<Omit<TextConfig, keyof DataConfig>> & DataConfig = {
         blockSize: 16,
         vocabSize: 50257,
     }
 
+    batchSize: number
+
+    constructor(protected task: Task) {
+        super(task)
+        this.batchSize = this.task.trainingInformation.batchSize
+    }
+
     resolveConfig(config?: Partial<TextConfig>): TextConfig {
         return Object.assign({}, TextLoader.DEFAULT_CONFIG, config)
     }
 
-    abstract load(source: Source, config: TextConfig): Promise<LoadDataset>
+    /**
+     * Core dataset, shared between node and web versions
+     * Takes an iterator that yields arrays of numbers and turns
+     * them into structured batch of tuples x, y
+     * @param config
+     * @param requestNext
+     * @returns A TokenizedDataset = tfjs dataset containing xs and ys tensors
+     */
+    async getCoreDataset(
+        config: TextConfig,
+        requestNext: () => Promise<number[]>
+    ): Promise<TokenizedDataset> {
+        const { vocabSize } = config
+        const sampleSize = config.blockSize + 1
 
-    abstract loadAll(source: Source | Source[], config?: Partial<TextConfig>): Promise<DataSplit>
+        const toUInt16 = (low: number, high: number) => {
+            low &= 0xff
+            high &= 0xff
+            return (high << 8) | low
+        }
+
+        const batchSize = this.batchSize
+
+        async function* generator(): AsyncTokenizedGenerator {
+            while (true) {
+                const chunk = await requestNext()
+                if (!chunk) break
+
+                for (let i = 0; i < batchSize; i++) {
+                    const xs = []
+                    const ys = []
+                    for (let j = 0; j < sampleSize; j++) {
+                        const idx = (i * sampleSize + j) * 2
+                        const low = chunk[idx]
+                        const high = chunk[idx + 1]
+                        const token = toUInt16(low, high)
+                        if (j < sampleSize - 1) xs.push(token)
+                        if (j > 0) ys.push(token)
+                    }
+                    yield { xs, ys }
+                }
+            }
+        }
+
+        // cast as any because tf.data.generator does not take a type AsyncGenerator (but it works)
+        return tf.data.generator(generator as any).map((v: any & TokenizedSample) => ({
+            xs: tf.tensor1d(v.xs, 'int32'),
+            ys: tf.oneHot(v.ys, vocabSize),
+        })) as TokenizedDataset
+    }
+
+    abstract load(source: string, config: TextConfig): Promise<TokenizedDataset>
+
+    abstract loadAll(source: TextSource, config?: Partial<TextConfig>): Promise<DataSplit>
 
     async createData(dataset: Dataset): Promise<Data> {
         return await TextData.init(dataset, this.task)

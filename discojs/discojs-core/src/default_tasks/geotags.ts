@@ -5,7 +5,7 @@ import { LabelTypeEnum } from '../task/label_type'
 export const geotags: TaskProvider = {
     getTask(): Task {
         return {
-            taskID: 'geotags',
+            id: 'geotags',
             displayInformation: {
                 taskTitle: 'GeoTags',
                 summary: {

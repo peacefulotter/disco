@@ -124,7 +124,7 @@ export class DecentralizedClient extends Client {
             default:
                 throw new Error(`unknown protocol: ${this.url.protocol}`)
         }
-        serverURL.pathname += `deai/${this.task.taskID}`
+        serverURL.pathname += `deai/${this.task.id}`
 
         this._server = await this.connectServer(serverURL)
 

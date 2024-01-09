@@ -1,0 +1,48 @@
+{
+    "compilerOptions": {
+        "rootDir": "../..",
+        "rootDirs": [
+            ".",
+            "../../discojs/discojs-web"
+        ],
+        "lib": ["dom", "dom.iterable", "ESNext"],
+        "module": "esnext",
+        "target": "es5",
+        "baseUrl": ".",
+        "esModuleInterop": true,
+        "moduleResolution": "bundler",
+        "moduleDetection": "force",
+        "outDir": "./dist",
+        "importHelpers": true,
+        "allowImportingTsExtensions": true,
+        "noEmit": true,
+        "composite": true,
+        "strict": true,
+        "downlevelIteration": true,
+        "skipLibCheck": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowJs": true,
+        "declaration": true,
+        "emitDeclarationOnly": false,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "incremental": true,
+        "checkJs": false,
+        "jsx": "preserve",
+        "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+        "paths": {
+            "@/*": ["./*"],
+            "@epfml/discojs-web": ["../../discojs/discojs-web/src/"],
+        }
+    },
+    "include": [
+        "next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts",
+        "../../discojs/discojs-web/src/**/*.ts"
+    ],
+    "exclude": ["./node_modules/**/*", "./dist/**/*"]
+}

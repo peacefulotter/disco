@@ -1,27 +1,73 @@
-import { tf, dataset } from '../..'
-import { TextConfig, TextLoader } from '@epfml/discojs-core/src/dataset/data_loader/text_loader'
+import { dataset } from '../..'
 
-export class WebTextLoader extends TextLoader<File, tf.data.TextLineDataset> {
-    async load(source: File, config: TextConfig): Promise<tf.data.TextLineDataset> {
-        const src = source
-        const file = new tf.data.FileDataSource(src)
-        return new tf.data.TextLineDataset(file)
+type WebsocketPayload = {
+    type: Buffer
+    data: number[]
+}
+
+export class WebTextLoader extends dataset.loader.TextLoader {
+    /**
+     * Builds a URL with the following search parameters
+     * taskId: The task ID as defined by this.task.taskID
+     * file: filename corresponding to the file the websocket server will stream
+     * config entries: all the config key, value pairs. The config object will be reconstructed in the websocket server side
+     */
+    getWebSocket = async (taskId: string, file: string, config: dataset.TextConfig) =>
+        new Promise<WebSocket>((resolve) => {
+            const brokerURL = new URL('ws://localhost:3001/ws')
+            const searchParams: dataset.WSSearchParams = {
+                taskId,
+                file,
+                ...config,
+            }
+            for (const [k, v] of Object.entries(searchParams)) brokerURL.searchParams.append(k, v)
+            const ws = new WebSocket(brokerURL)
+            ws.onopen = () => {
+                resolve(ws)
+            }
+        })
+
+    async load(file: string, config: dataset.TextConfig): Promise<dataset.TokenizedDataset> {
+        // TODO: implement a way to close websocket at the end of training
+        // onTrainEnd = () => ws.close()
+        const ws = await this.getWebSocket(this.task.id, file, config)
+
+        const requestNext = async () =>
+            new Promise<number[]>((resolve) => {
+                ws.onmessage = (payload) => {
+                    const buffer = JSON.parse(payload.data as string) as WebsocketPayload
+                    resolve(buffer.data)
+                }
+                setTimeout(() => ws.send('req'), 1)
+            })
+
+        const dataset = await this.getCoreDataset(config, requestNext)
+        return dataset
     }
+
     async loadAll(
-        source: File[],
-        config?: Partial<TextConfig> | undefined
+        source: dataset.TextSource,
+        config?: Partial<dataset.TextConfig> | undefined
     ): Promise<dataset.DataSplit> {
-        // TODO: multiple source or just one?
-        // TODO: if one source, just return the train dataset?
-        // TODO: return a TextLineDataset and not a TokenizedDataset??
-        console.log('WebTextLoader.loadAll', source.length, config)
-        const datasets = await Promise.all(
-            source.map(async (s) => await this.load(s, config as TextConfig))
+        console.log(
+            'WebTextLoader.loadAll; train:',
+            source.train.length,
+            'validation:',
+            source.validation?.length
         )
-        const ds = datasets[0]
+        const _config = this.resolveConfig(config)
+
+        const loadFromSources = async (files: string[]) => {
+            const datasets = await Promise.all(files.map((f) => this.load(f, _config)) ?? [])
+            const ds =
+                datasets.length > 1
+                    ? datasets.slice(1).reduce((acc, cur) => acc.concatenate(cur), datasets[0])
+                    : datasets[0]
+            return await dataset.TextData.init(ds, this.task)
+        }
         return {
-            train: await dataset.TextData.init(ds, this.task),
-            validation: await dataset.TextData.init(ds, this.task),
+            train: await loadFromSources(source.train),
+            validation: source.validation && (await loadFromSources(source.validation)),
         }
     }
 }

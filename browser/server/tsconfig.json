@@ -1,0 +1,36 @@
+{
+    "compilerOptions": {
+        "rootDir": "../..",
+        "rootDirs": [".", "../../discojs/discojs-node"],
+        "baseUrl": ".",
+        "esModuleInterop": true,
+        "module": "esnext",
+        "target": "esnext",
+        "moduleResolution": "bundler",
+        "moduleDetection": "force",
+        "outDir": "./dist",
+        "composite": true,
+        "downlevelIteration": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "allowJs": true,
+        "declaration": true,
+        "emitDeclarationOnly": false,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "noEmit": true,
+        "isolatedModules": true,
+        "incremental": true,
+        "checkJs": false,
+        "paths": {
+            "@/*": ["./*"],
+            "@epfml/discojs-node": ["../../discojs/discojs-node/src/"],
+
+        }
+    },
+    "include": [
+        "./**/*.ts", "../../discojs/discojs-node/src/**/*.ts"
+    ],
+    "exclude": ["./node_modules/**/*", "./dist/**/*"]
+}
