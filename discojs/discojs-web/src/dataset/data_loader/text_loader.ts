@@ -1,10 +1,5 @@
 import { dataset } from '../..'
 
-type WebsocketPayload = {
-    type: Buffer
-    data: number[]
-}
-
 export class WebTextLoader extends dataset.loader.TextLoader {
     /**
      * Builds a URL with the following search parameters
@@ -35,8 +30,8 @@ export class WebTextLoader extends dataset.loader.TextLoader {
         const requestNext = async () =>
             new Promise<number[]>((resolve) => {
                 ws.onmessage = (payload) => {
-                    const buffer = JSON.parse(payload.data as string) as WebsocketPayload
-                    resolve(buffer.data)
+                    const data = JSON.parse(payload.data as string)
+                    resolve(data)
                 }
                 setTimeout(() => ws.send('req'), 1)
             })
@@ -49,12 +44,6 @@ export class WebTextLoader extends dataset.loader.TextLoader {
         source: dataset.TextSource,
         config?: Partial<dataset.TextConfig> | undefined
     ): Promise<dataset.DataSplit> {
-        console.log(
-            'WebTextLoader.loadAll; train:',
-            source.train.length,
-            'validation:',
-            source.validation?.length
-        )
         const _config = this.resolveConfig(config)
 
         const loadFromSources = async (files: string[]) => {

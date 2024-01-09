@@ -1,4 +1,4 @@
-import { tf } from '@epfml/discojs-node'
+import { tf } from '@epfml/discojs-core'
 
 function convertMinGPTConfig(config: any) {
     const mapping = {

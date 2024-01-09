@@ -19,7 +19,10 @@ export class NodeTextLoader extends TextLoader {
         })
     }
 
-    getIteratorDatasetFromFile(source: string, config: TextConfig): AsyncIterator<Buffer> {
+    getInfiniteIteratorFromFile(
+        source: string,
+        config: TextConfig
+    ): AsyncIterator<Buffer, Buffer, Buffer> {
         const getStream = () => {
             const stream = this.getFileStream(source, config)
             return {
@@ -43,24 +46,25 @@ export class NodeTextLoader extends TextLoader {
         }
     }
 
-    async loadDatasetFrom(source: string, config: TextConfig): Promise<TokenizedDataset> {
+    async getFileStreamIterator(source: string, config: TextConfig) {
         const prefix = 'file://'
         if (!source.startsWith(prefix)) {
             source = prefix + source
         }
 
-        let stream = this.getIteratorDatasetFromFile(source, config)
-        const requestNext = async () => {
+        let stream = this.getInfiniteIteratorFromFile(source, config)
+        const requestNext = async (): Promise<number[]> => {
             const { value } = await stream.next()
-            return value
+            const chunk = value.toJSON().data
+            return chunk
         }
-        const dataset = await this.getCoreDataset(config, requestNext)
-        return dataset
+        return requestNext
     }
 
     async load(source: string, config: TextConfig): Promise<TokenizedDataset> {
-        const ds = await this.loadDatasetFrom(source, config)
-        return ds
+        const requestNext = await this.getFileStreamIterator(source, config)
+        const dataset = await this.getCoreDataset(config, requestNext)
+        return dataset
     }
 
     async loadAll(source: TextSource, config?: Partial<TextConfig>): Promise<dataset.DataSplit> {

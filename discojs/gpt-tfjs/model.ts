@@ -1,4 +1,4 @@
-import { tf } from '@epfml/discojs-node'
+import { tf } from '@epfml/discojs-core'
 import { train } from './train'
 
 const Range = (config: any) => new Range_(config)

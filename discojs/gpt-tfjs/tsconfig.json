@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
       "rootDir": "..",
-      "rootDirs": [".", "../discojs-node"],
+      "rootDirs": [".", "../discojs-core"],
       "lib": ["ESNext"],
       "module": "esnext",
       "target": "esnext",
@@ -26,19 +26,15 @@
       "isolatedModules": true,
       "incremental": true,
       "checkJs": false,
-      // "typeRoots": ["node_modules/@types", "discojs-core/types"],
-      "types": [
-          "bun-types" // add Bun global
-      ],
       "paths": {
           "@/*": ["*"],
-          "@epfml/discojs-node": ["../discojs-node/src"],
+          "@epfml/discojs-core": ["../discojs-core/src"],
       }
   },
   "include": [
       "**/*.ts",
       "decs.d.ts",
-      "../discojs-node/src/**/*.ts",
+      "../discojs-core/src/**/*.ts",
   ],
   "exclude": ["./node_modules/**/*", "./dist/**/*"]
 }

@@ -1,4 +1,4 @@
-import { tf } from '@epfml/discojs-node'
+import { tf } from '@epfml/discojs-core'
 
 type Tensor = tf.Tensor
 
@@ -14,24 +14,15 @@ function globalNorm(tensors: Tensor[]): Tensor {
         halfSquaredNorms.push(l2Loss(tensor))
     })
     const halfSquaredNorm: Tensor = tf.sum(tf.stack(halfSquaredNorms))
-    const norm: Tensor = tf.sqrt(
-        tf.mul(halfSquaredNorm, tf.scalar(2.0, halfSquaredNorm.dtype))
-    )
+    const norm: Tensor = tf.sqrt(tf.mul(halfSquaredNorm, tf.scalar(2.0, halfSquaredNorm.dtype)))
     return norm
 }
 
-function clipByGlobalNorm(
-    tensors: Tensor[],
-    clipNorm: number,
-    useNorm?: Tensor
-): Tensor[] {
+function clipByGlobalNorm(tensors: Tensor[], clipNorm: number, useNorm?: Tensor): Tensor[] {
     useNorm = useNorm || globalNorm(tensors)
     const scale: Tensor = tf.mul(
         clipNorm,
-        tf.minimum(
-            tf.div(tf.scalar(1.0), useNorm),
-            tf.div(tf.scalar(1.0, useNorm.dtype), clipNorm)
-        )
+        tf.minimum(tf.div(tf.scalar(1.0), useNorm), tf.div(tf.scalar(1.0, useNorm.dtype), clipNorm))
     )
     const tensorsClipped: Tensor[] = []
     tensors.forEach((tensor: Tensor, ti: number) => {
@@ -47,11 +38,7 @@ function clipByGlobalNormObj(
 ): { [key: string]: Tensor } {
     const varNames: string[] = Object.keys(tensorsObj)
     const tensorsArr: Tensor[] = varNames.map((n: string) => tensorsObj[n])
-    const tensorsArrClipped: Tensor[] = clipByGlobalNorm(
-        tensorsArr,
-        clipNorm,
-        useNorm
-    )
+    const tensorsArrClipped: Tensor[] = clipByGlobalNorm(tensorsArr, clipNorm, useNorm)
     const tensorsObjClipped: { [key: string]: Tensor } = {}
     tensorsArrClipped.forEach((t: Tensor, ti: number) => {
         tensorsObjClipped[varNames[ti]] = t
@@ -103,10 +90,7 @@ class AdamW extends tf.AdamOptimizer {
                 const value: any = ENGINE.registeredVariables[name]
                 const newValue: Tensor = tf.sub(
                     value,
-                    tf.mul(
-                        this.learningRate,
-                        tf.mul(value, this.weightDecayRate)
-                    )
+                    tf.mul(this.learningRate, tf.mul(value, this.weightDecayRate))
                 )
                 value.assign(newValue)
             }

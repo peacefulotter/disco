@@ -3,6 +3,7 @@
         "rootDir": "../..",
         "rootDirs": [
             ".",
+            "../../discojs/discojs-core",
             "../../discojs/discojs-web"
         ],
         "lib": ["dom", "dom.iterable", "ESNext"],
@@ -37,11 +38,13 @@
     ],
         "paths": {
             "@/*": ["./*"],
+            "@epfml/discojs-core": ["../../discojs/discojs-core/src/"],
             "@epfml/discojs-web": ["../../discojs/discojs-web/src/"],
         }
     },
     "include": [
         "next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts",
+        "../../discojs/discojs-core/src/**/*.ts",
         "../../discojs/discojs-web/src/**/*.ts"
     ],
     "exclude": ["./node_modules/**/*", "./dist/**/*"]

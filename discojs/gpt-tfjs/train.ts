@@ -1,4 +1,4 @@
-import { tf } from '@epfml/discojs-node'
+import { tf } from '@epfml/discojs-core'
 import { AdamW, clipByGlobalNormObj } from './optimizers'
 
 interface TrainConfig {
@@ -12,11 +12,7 @@ interface TrainConfig {
     verbose?: boolean
 }
 
-async function train(
-    model: any,
-    ds: any,
-    config: TrainConfig & any
-): Promise<void> {
+async function train(model: any, ds: any, config: TrainConfig & any): Promise<void> {
     const defaultConfig: TrainConfig = {
         epochs: null,
         maxIter: null,
