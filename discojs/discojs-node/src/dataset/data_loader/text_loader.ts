@@ -116,14 +116,12 @@ export class NodeTextLoader extends TextLoader<TextSource, TokenizedDataset> {
         const _config = this.resolveConfig(config)
         const split: Partial<dataset.DataSplit> = {}
         for await (const [k, files] of Object.entries(source)) {
-            console.log(files)
             const datasets = await Promise.all(
                 files.map(async (source) => await this.load({ train: [source] }, _config))
             )
-            let dataset = List(datasets).reduce((acc: dataset.Dataset, dataset) =>
+            const dataset = List(datasets).reduce((acc: dataset.Dataset, dataset) =>
                 acc.concatenate(dataset)
             )
-            // dataset = config?.shuffle ? dataset.shuffle(BUFFER_SIZE) : dataset
             const data = await this.createData(dataset)
             ;(split as dataset.DataSplit)[k as keyof typeof split] = data
         }

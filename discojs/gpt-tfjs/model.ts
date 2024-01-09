@@ -615,6 +615,8 @@ type GPTConfig = {
     verbose?: boolean
     bias?: boolean
     debug?: boolean
+    dropout?: number
+    residDrop?: number
     embdDrop?: number
     nLayer?: number
     nHead?: number

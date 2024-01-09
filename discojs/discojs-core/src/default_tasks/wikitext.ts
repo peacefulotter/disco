@@ -68,11 +68,15 @@ export const wikitext: TaskProvider = {
             lr: 0.001,
             shuffle: NaN,
             weightDecay: false,
-            embdDrop: 0.2,
+            dropout: 0.2,
             bias: true,
             vocabSize: 50257,
         }
-        const model = new gpt.GPTLMHeadModel(config)
+        config.residDrop = config.dropout
+        config.embdDrop = config.dropout
+        console.log('GPT Config:', config)
+        // const model = new gpt.GPTLMHeadModel(config)
+        const model = gpt.GPT(config)
         return new TFJSModel(this.getTask(), model as any as tf.LayersModel)
     },
 }
