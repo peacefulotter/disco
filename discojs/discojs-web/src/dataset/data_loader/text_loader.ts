@@ -12,13 +12,13 @@ export class WebTextLoader extends dataset.loader.TextLoader {
      * file: filename corresponding to the file the websocket server will stream
      * config entries: all the config key, value pairs. The config object will be reconstructed in the websocket server side
      */
-    getWebSocket = async (taskId: string, file: string, config: dataset.TextConfig) =>
+    getWebSocket = async (file: string, config: dataset.TextConfig) =>
         new Promise<WebSocket>((resolve) => {
             const brokerURL = new URL('ws://localhost:3001/ws')
             const searchParams: dataset.WSSearchParams = {
-                taskId,
+                task: JSON.stringify(this.task),
+                config: JSON.stringify(config),
                 file,
-                ...config,
             }
             for (const [k, v] of Object.entries(searchParams)) brokerURL.searchParams.append(k, v)
             const ws = new WebSocket(brokerURL)
@@ -30,7 +30,7 @@ export class WebTextLoader extends dataset.loader.TextLoader {
     async load(file: string, config: dataset.TextConfig): Promise<dataset.TokenizedDataset> {
         // TODO: implement a way to close websocket at the end of training
         // onTrainEnd = () => ws.close()
-        const ws = await this.getWebSocket(this.task.id, file, config)
+        const ws = await this.getWebSocket(file, config)
 
         const requestNext = async () =>
             new Promise<number[]>((resolve) => {

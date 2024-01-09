@@ -35,7 +35,8 @@ export type TextSource = {
     validation?: string[]
 }
 
-export type WSSearchParams = TextConfig & { file: string; taskId: string }
+export type ParsedWSSearchParams = { config: TextConfig; file: string; task: Task }
+export type WSSearchParams = Record<keyof ParsedWSSearchParams, string>
 
 type AsyncTokenizedGenerator = AsyncGenerator<TokenizedSample, void, unknown>
 
