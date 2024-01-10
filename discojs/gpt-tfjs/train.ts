@@ -85,24 +85,19 @@ export async function train(
             next = await iterator.next()
         }
         const { xs, ys } = next.value
-        console.log('gpt training loop, next:', xs.shape, ys.shape)
 
         // Keep loss for reporting
         const optFunc = () => {
             const logits = model.apply(xs)
-            const loss = tf.keep(tf.losses.softmaxCrossEntropy(ys, logits))
-            return loss
+            const loss = tf.losses.softmaxCrossEntropy(ys, logits)
+            return loss as tf.Scalar
         }
         const loss = tf.tidy(() => {
-            const loss = optFunc()
-            let { grads } = opt.computeGradients(() => loss as any) as any
+            let { grads, value: loss } = opt.computeGradients(optFunc)
             let gradsClipped = clipByGlobalNormObj(grads, 1)
             opt.applyGradients(gradsClipped)
             return loss
         })
-
-        let lossVal = await loss.array()
-        console.warn('gpt training loop, loss:', lossVal)
 
         callbacks.onBatchEnd(iteration)
 
@@ -118,6 +113,7 @@ export async function train(
         }
 
         if (config.verbose) {
+            const lossVal = await loss.array()
             console.log('Mem:', tf.memory())
             console.log(`Epoch: ${epoch}, Step: ${iteration}, Loss: ${lossVal}`)
         }

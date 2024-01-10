@@ -17,4 +17,13 @@ bun install
 ./install-wikitext.sh
 bun ./core/preprocess.ts
 bun run dev
+
+# -- For web version only:
+cd ../../browser/server
+bun install
+bun run dev
+# in a separate terminal
+cd ../../browser/server
+bun install
+bun run dev
 ```
