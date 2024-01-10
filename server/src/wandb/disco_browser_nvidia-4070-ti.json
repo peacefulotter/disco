@@ -1,0 +1,171 @@
+{
+    "init": {
+        "config": {
+            "platform": "browser",
+            "gpu": "nvidia-4070-ti"
+        },
+        "date": "2024-01-10T15:10:54.017Z"
+    },
+    "logs": [
+        {
+            "train/perplexity": 50257.013861170606,
+            "train/loss": 10.824905395507812,
+            "iter": 1,
+            "mem": 121176316,
+            "dt_ms": 283,
+            "time_s": 0.283
+        },
+        {
+            "train/perplexity": 50758.48620646333,
+            "train/loss": 10.834834098815918,
+            "iter": 2,
+            "mem": 121176316,
+            "dt_ms": 201,
+            "time_s": 0.484
+        },
+        {
+            "train/perplexity": 50180.38622094638,
+            "train/loss": 10.823379516601562,
+            "iter": 3,
+            "mem": 121176316,
+            "dt_ms": 155,
+            "time_s": 0.639
+        },
+        {
+            "train/perplexity": 49077.27008975463,
+            "train/loss": 10.801151275634766,
+            "iter": 4,
+            "mem": 121176316,
+            "dt_ms": 175,
+            "time_s": 0.814
+        },
+        {
+            "train/perplexity": 49723.02027670342,
+            "train/loss": 10.814223289489746,
+            "iter": 5,
+            "mem": 121176316,
+            "dt_ms": 142,
+            "time_s": 0.956
+        },
+        {
+            "train/perplexity": 49342.51900884806,
+            "train/loss": 10.806541442871094,
+            "iter": 6,
+            "mem": 121176316,
+            "dt_ms": 148,
+            "time_s": 1.104
+        },
+        {
+            "train/perplexity": 49010.85377153034,
+            "train/loss": 10.799797058105469,
+            "iter": 7,
+            "mem": 121176316,
+            "dt_ms": 144,
+            "time_s": 1.248
+        },
+        {
+            "train/perplexity": 48730.74750572356,
+            "train/loss": 10.794065475463867,
+            "iter": 8,
+            "mem": 121176316,
+            "dt_ms": 184,
+            "time_s": 1.432
+        },
+        {
+            "train/perplexity": 46037.879798627466,
+            "train/loss": 10.73721981048584,
+            "iter": 9,
+            "mem": 121176316,
+            "dt_ms": 164,
+            "time_s": 1.596
+        },
+        {
+            "train/perplexity": 45026.7301925073,
+            "train/loss": 10.715011596679688,
+            "iter": 10,
+            "mem": 121176316,
+            "dt_ms": 139,
+            "time_s": 1.735
+        },
+        {
+            "train/perplexity": 48414.5051460422,
+            "train/loss": 10.787554740905762,
+            "iter": 11,
+            "mem": 121176316,
+            "dt_ms": 144,
+            "time_s": 1.879
+        },
+        {
+            "train/perplexity": 48154.79600459662,
+            "train/loss": 10.78217601776123,
+            "iter": 12,
+            "mem": 121176316,
+            "dt_ms": 141,
+            "time_s": 2.02
+        },
+        {
+            "train/perplexity": 47756.36364667775,
+            "train/loss": 10.7738676071167,
+            "iter": 13,
+            "mem": 121176316,
+            "dt_ms": 129,
+            "time_s": 2.149
+        },
+        {
+            "train/perplexity": 47198.499738360406,
+            "train/loss": 10.762117385864258,
+            "iter": 14,
+            "mem": 121176316,
+            "dt_ms": 145,
+            "time_s": 2.294
+        },
+        {
+            "train/perplexity": 44004.623202449104,
+            "train/loss": 10.692049980163574,
+            "iter": 15,
+            "mem": 121176316,
+            "dt_ms": 137,
+            "time_s": 2.431
+        },
+        {
+            "train/perplexity": 47889.6745314184,
+            "train/loss": 10.776655197143555,
+            "iter": 16,
+            "mem": 121176316,
+            "dt_ms": 149,
+            "time_s": 2.58
+        },
+        {
+            "train/perplexity": 47374.82518925768,
+            "train/loss": 10.765846252441406,
+            "iter": 17,
+            "mem": 121176316,
+            "dt_ms": 131,
+            "time_s": 2.711
+        },
+        {
+            "train/perplexity": 43738.56845498911,
+            "train/loss": 10.685985565185547,
+            "iter": 18,
+            "mem": 121176316,
+            "dt_ms": 146,
+            "time_s": 2.857
+        },
+        {
+            "train/perplexity": 45655.6130086441,
+            "train/loss": 10.7288818359375,
+            "iter": 19,
+            "mem": 121176316,
+            "dt_ms": 129,
+            "time_s": 2.986
+        },
+        {
+            "train/perplexity": 45644.250330016905,
+            "train/loss": 10.728632926940918,
+            "iter": 20,
+            "mem": 121176316,
+            "dt_ms": 153,
+            "time_s": 3.139
+        }
+    ]
+}

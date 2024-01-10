@@ -1,7 +1,7 @@
 'use client'
 import path from 'path'
 import * as disco from '@epfml/discojs-web'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { main } from '@/disco/main'
 
 const task = disco.defaultTasks.wikitext.getTask()
@@ -32,29 +32,42 @@ const getTokenizedSample = async (datasplit: disco.dataset.DataSplit) => {
 
 export default function Home() {
     const [sample, setSample] = useState<disco.dataset.BatchedTokenizedTensorSample>()
+    const [running, setRunning] = useState<boolean>(false)
 
-    const initialized = useRef(false)
+    const getSample = async () => {
+        const datasplit = await getDatasplit(task)
+        const { value } = await getTokenizedSample(datasplit)
+        setSample(value)
+    }
 
-    useEffect(() => {
-        const foo = async () => {
-            const datasplit = await getDatasplit(task)
-            console.log(datasplit)
-            const { value } = await getTokenizedSample(datasplit)
-            console.log(value)
-            setSample(value)
-            const url = new URL('', 'http://localhost:8000')
-            main(url, task, datasplit).catch(console.error)
-        }
-        if (!initialized.current) {
-            initialized.current = true
-            foo()
-        }
-    }, [])
+    const startTraining = async () => {
+        // FIXME: url in .env (or fetched from backend?)
+        const datasplit = await getDatasplit(task)
+        const url = new URL('', 'http://localhost:8000')
+        setRunning(true)
+        await main(url, task, datasplit).catch(console.error)
+        setRunning(false)
+    }
 
     return (
-        <main className='flex min-h-screen flex-col items-center justify-between p-24'>
-            {sample && JSON.stringify(sample.xs.shape, null, 4)}
-            {sample && JSON.stringify(sample.ys.shape, null, 4)}
+        <main className='flex p-24 gap-8'>
+            <div className='flex justify-between items-center gap-8 bg-slate-800 rounded py-4 px-8'>
+                <button onClick={getSample} className='bg-slate-700 rounded px-4 py-2'>
+                    Get sample
+                </button>
+                <div>
+                    <p>xs: {sample && <b>{JSON.stringify(sample.xs.shape, null, 4)}</b>}</p>
+                    <p>ys: {sample && <b>{JSON.stringify(sample.ys.shape, null, 4)}</b>}</p>
+                </div>
+            </div>
+            <div className='flex justify-between items-center gap-8 bg-slate-800 rounded p-4'>
+                <button onClick={startTraining} className='bg-slate-700 rounded px-4 py-2'>
+                    Train
+                </button>
+                <div>
+                    Running?: <b>{running ? 'true' : 'false'}</b>
+                </div>
+            </div>
         </main>
     )
 }

@@ -1,5 +1,6 @@
 import { tf, training } from '@epfml/discojs-core'
 import { AdamW, clipByGlobalNormObj } from './optimizers'
+import { Wandb } from './wandb'
 
 interface TrainConfig {
     epochs?: number | null
@@ -65,13 +66,22 @@ export async function train(
         opt = tf.train.adam(config.lr)
     }
 
+    const wandb = new Wandb({
+        platform: window && typeof window !== undefined ? 'browser' : 'node',
+        gpu: 'nvidia-4070-ti',
+    })
+
     callbacks.onTrainBegin()
 
     let epoch = 1
     let iteration = 1
     let iterator = await ds.iterator()
 
+    const start = Date.now()
+    let time = start
+
     while (true) {
+        // Get new batch of x and y
         callbacks.onBatchBegin(iteration)
         let next = await iterator.next()
         if (next.done) {
@@ -86,20 +96,32 @@ export async function train(
         }
         const { xs, ys } = next.value
 
-        // Keep loss for reporting
-        const optFunc = () => {
-            const logits = model.apply(xs)
-            const loss = tf.losses.softmaxCrossEntropy(ys, logits)
-            return loss as tf.Scalar
-        }
+        // Calculates loss, computes gradients and applies them
         const loss = tf.tidy(() => {
-            let { grads, value: loss } = opt.computeGradients(optFunc)
+            let { grads, value: loss } = opt.computeGradients(() => {
+                const logits = model.apply(xs)
+                const loss = tf.losses.softmaxCrossEntropy(ys, logits)
+                return loss as tf.Scalar
+            })
             let gradsClipped = clipByGlobalNormObj(grads, 1)
             opt.applyGradients(gradsClipped)
             return loss
         })
 
+        const lossVal = await loss.array()
+
         callbacks.onBatchEnd(iteration)
+
+        // Log wandb
+        wandb.log({
+            'train/perplexity': Math.exp(lossVal),
+            'train/loss': lossVal,
+            iter: iteration,
+            mem: tf.memory().numBytes,
+            dt_ms: Date.now() - time,
+            time_s: (Date.now() - start) / 1000,
+        })
+        time = Date.now()
 
         // Dispose everything
         loss.dispose()
@@ -113,7 +135,6 @@ export async function train(
         }
 
         if (config.verbose) {
-            const lossVal = await loss.array()
             console.log('Mem:', tf.memory())
             console.log(`Epoch: ${epoch}, Step: ${iteration}, Loss: ${lossVal}`)
         }
@@ -122,4 +143,5 @@ export async function train(
     }
 
     callbacks.onTrainEnd()
+    wandb.finish()
 }

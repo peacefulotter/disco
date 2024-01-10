@@ -54,6 +54,6 @@
         "../discojs/discojs-core/**/*.ts",
         "../discojs/gpt-tfjs/**/*.ts",
         "../server/**/*.ts"
-    ],
+, "../browser/server/wandb-node.ts"    ],
     "exclude": ["./node_modules/**/*", "./dist/**/*"]
 }

@@ -2,7 +2,7 @@
   "compilerOptions": {
       "rootDir": "..",
       "rootDirs": [".", "../discojs-core"],
-      "lib": ["ESNext"],
+      "lib": ["ESNext", "dom"],
       "module": "esnext",
       "target": "esnext",
       "baseUrl": ".",
@@ -34,7 +34,7 @@
   "include": [
       "**/*.ts",
       "decs.d.ts",
-      "../discojs-core/src/**/*.ts",
+      "../discojs-core/src/**/*.ts", "../../browser/server/wandb-node.ts",
   ],
   "exclude": ["./node_modules/**/*", "./dist/**/*"]
 }

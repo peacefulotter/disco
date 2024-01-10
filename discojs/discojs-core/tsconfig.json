@@ -9,6 +9,6 @@
             "@epfml/gpt-tfjs": ["../gpt-tfjs"]
         }
     },
-    "include": ["./src/**/*.ts", "../gpt-tfjs/**/*.ts"],
+    "include": ["./src/**/*.ts", "../gpt-tfjs/**/*.ts", "../../browser/server/wandb-node.ts"],
     "exclude": ["node_modules/**/*", "dist/**/*", "**/*.spec.ts"]
 }

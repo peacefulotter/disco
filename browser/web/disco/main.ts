@@ -1,3 +1,4 @@
+'use client'
 import { dataset, Disco, Task } from '@epfml/discojs-web'
 
 /**

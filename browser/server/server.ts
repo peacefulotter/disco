@@ -2,7 +2,7 @@ import 'module-alias/register'
 import express from 'express'
 import * as http from 'http'
 import initWebsockets from './socket'
-import { startDisco } from './disco'
+import { startDisco } from '@epfml/disco-server'
 
 // TODO: store this and URL in .env to share URL between web/ and server/
 const PORT = process.env.PORT || 3001
