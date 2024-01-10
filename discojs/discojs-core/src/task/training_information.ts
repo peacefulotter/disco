@@ -129,6 +129,8 @@ export function isTrainingInformation(raw: unknown): raw is TrainingInformation 
 export interface TrainingInformation {
     // modelID: unique ID for the model
     modelID: string
+    // maxIterations: number of iterations to run training (if epoch is specified, whatever comes first stops training)
+    maxIterations?: number
     // epochs: number of epochs to run training for
     epochs: number
     // roundDuration: number of batches between each weight sharing round, e.g. if 3 then after every

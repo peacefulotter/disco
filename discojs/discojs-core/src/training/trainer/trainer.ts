@@ -13,7 +13,7 @@ import { TrainerLogger, TrainerLog } from '../../logging/trainer_logger'
  */
 
 // From tfjs base_callbacks.d.ts
-export interface Callbacks {
+export interface TrainingCallbacks {
     onEpochBegin: (epoch: number, logs?: tf.Logs) => Promise<void>
     onEpochEnd: (epoch: number, logs?: tf.Logs) => Promise<void>
     onBatchBegin: (batch: number, logs?: tf.Logs) => Promise<void>
@@ -22,7 +22,7 @@ export interface Callbacks {
     onTrainEnd: (logs?: tf.Logs) => Promise<void>
 }
 
-export abstract class Trainer implements Callbacks {
+export abstract class Trainer implements TrainingCallbacks {
     public readonly roundTracker: RoundTracker
 
     private stopTrainingRequested = false

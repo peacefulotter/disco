@@ -44,7 +44,7 @@ export class TasksAndModels extends EventEmitter {
         const discoTask = isTaskProvider(task) ? task.getTask() : task
         let model: tf.LayersModel | undefined
 
-        const modelPath = `./models/${discoTask.taskID}/`
+        const modelPath = `./models/${discoTask.id}/`
         if (fs.existsSync(modelPath)) {
             // either a model has already been trained, or the pretrained
             // model has already been downloaded

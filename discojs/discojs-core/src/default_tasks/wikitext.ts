@@ -25,9 +25,10 @@ export const wikitext: TaskProvider = {
             },
             trainingInformation: {
                 modelID: 'wikitext-103-raw-model',
+                maxIterations: 200,
                 epochs: 10,
                 roundDuration: 10,
-                validationSplit: 0.2,
+                validationSplit: 0.2, // FIXME: is this used somewhere? because train, eval and test are already split in dataset
                 batchSize: 4,
                 modelCompileData: {
                     optimizer: 'sgd',

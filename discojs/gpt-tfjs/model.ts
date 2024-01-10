@@ -1,4 +1,4 @@
-import { tf } from '@epfml/discojs-core'
+import { tf, training } from '@epfml/discojs-core'
 import { train } from './train'
 
 const Range = (config: any) => new Range_(config)
@@ -578,8 +578,9 @@ class GPTModel extends tf.LayersModel {
     }
 
     async fitDataset<T>(dataset: Dataset<T>, args: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
+        console.log('=== GPTModel custom train function ===')
         const config = { ...this.config, ...args }
-        await train(this, dataset, config)
+        await train(this, dataset, config, args.callbacks as training.TrainingCallbacks)
         return {} as tf.History
     }
 

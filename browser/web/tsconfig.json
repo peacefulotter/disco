@@ -31,16 +31,15 @@
         "incremental": true,
         "checkJs": false,
         "jsx": "preserve",
-        "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+        "plugins": [{
+            "name": "next"
+        }],
         "paths": {
             "@/*": ["./*"],
             "@epfml/discojs-core": ["../../discojs/discojs-core/src/"],
             "@epfml/discojs-web": ["../../discojs/discojs-web/src/"],
-        }
+        },
+        "typeRoots": ["node_modules/@types", "../../discojs/discojs-core/types"]
     },
     "include": [
         "next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts",

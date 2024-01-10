@@ -57,6 +57,10 @@ export abstract class TextLoader extends DataLoader<string, TextSource, TextConf
     constructor(protected task: Task) {
         super(task)
         this.batchSize = this.task.trainingInformation.batchSize
+        if (!this.batchSize)
+            throw new Error(
+                'batch size is undefined, define a batchSize in your task training information (task.trainingInformation.batchSize)'
+            )
     }
 
     resolveConfig(config?: Partial<TextConfig>): TextConfig {

@@ -1,18 +1,22 @@
-import { tf } from '@epfml/discojs-core'
+import { tf, training } from '@epfml/discojs-core'
 import { AdamW, clipByGlobalNormObj } from './optimizers'
 
 interface TrainConfig {
     epochs?: number | null
     maxIter?: number | null
-    batchSize?: number
+    batchSize: number
     shuffle?: boolean | 'batch' | number
     lr?: number
     weightDecay?: boolean | number
-    callbacks?: Function[]
     verbose?: boolean
 }
 
-async function train(model: any, ds: any, config: TrainConfig & any): Promise<void> {
+export async function train(
+    model: any,
+    ds: any,
+    config: TrainConfig,
+    callbacks: training.TrainingCallbacks
+): Promise<void> {
     const defaultConfig: TrainConfig = {
         epochs: null,
         maxIter: null,
@@ -20,18 +24,17 @@ async function train(model: any, ds: any, config: TrainConfig & any): Promise<vo
         shuffle: true,
         lr: 6e-4,
         weightDecay: false,
-        callbacks: [],
     }
     config = Object.assign(defaultConfig, config || {})
 
-    if (config.shuffle === true) {
-        ds = ds.shuffle(config.batchSize * 10)
-    } else if (config.shuffle === 'batch') {
-        ds = ds.shuffle(config.batchSize)
-    } else if (!isNaN(config.shuffle)) {
-        ds = ds.shuffle(config.shuffle)
-    }
-    ds = ds.batch(config.batchSize)
+    // if (config.shuffle === true) {
+    //     ds = ds.shuffle(config.batchSize * 10)
+    // } else if (config.shuffle === 'batch') {
+    //     ds = ds.shuffle(config.batchSize)
+    // } else if (config.shuffle && !isNaN(config.shuffle)) {
+    //     ds = ds.shuffle(config.shuffle)
+    // }
+    // ds = ds.batch(config.batchSize)
 
     var includeInWeightDecay: string[] = []
     var excludeFromWeightDecay: string[] = []
@@ -62,26 +65,32 @@ async function train(model: any, ds: any, config: TrainConfig & any): Promise<vo
         opt = tf.train.adam(config.lr)
     }
 
+    callbacks.onTrainBegin()
+
     let epoch = 1
     let iteration = 1
     let iterator = await ds.iterator()
 
     while (true) {
+        callbacks.onBatchBegin(iteration)
         let next = await iterator.next()
         if (next.done) {
+            callbacks.onEpochEnd(epoch)
             epoch++
             if (config.epochs && epoch > config.epochs) {
                 break
             }
+            callbacks.onEpochBegin(epoch)
             iterator = await ds.iterator()
             next = await iterator.next()
         }
-        const { x, y } = next.value
+        const { xs, ys } = next.value
+        console.log('gpt training loop, next:', xs.shape, ys.shape)
 
         // Keep loss for reporting
         const optFunc = () => {
-            const logits = model.apply(x)
-            const loss = tf.keep(tf.losses.softmaxCrossEntropy(y, logits))
+            const logits = model.apply(xs)
+            const loss = tf.keep(tf.losses.softmaxCrossEntropy(ys, logits))
             return loss
         }
         const loss = tf.tidy(() => {
@@ -93,16 +102,14 @@ async function train(model: any, ds: any, config: TrainConfig & any): Promise<vo
         })
 
         let lossVal = await loss.array()
-        if (Array.isArray(config.callbacks)) {
-            for (let callback of config.callbacks) {
-                await callback(model, lossVal, iteration)
-            }
-        }
+        console.warn('gpt training loop, loss:', lossVal)
+
+        callbacks.onBatchEnd(iteration)
 
         // Dispose everything
         loss.dispose()
-        x.dispose()
-        y.dispose()
+        xs.dispose()
+        ys.dispose()
 
         // Check if we should stop
         iteration++
@@ -117,6 +124,6 @@ async function train(model: any, ds: any, config: TrainConfig & any): Promise<vo
 
         await new Promise((resolve) => setTimeout(resolve, 1))
     }
-}
 
-export { train }
+    callbacks.onTrainEnd()
+}

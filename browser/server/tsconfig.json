@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "rootDir": "../..",
-        "rootDirs": [".", "../../discojs/discojs-node"],
+        "rootDirs": [".", "../../discojs/discojs-node", "../../server"],
         "baseUrl": ".",
         "esModuleInterop": true,
         "module": "esnext",
@@ -26,11 +26,11 @@
         "paths": {
             "@/*": ["./*"],
             "@epfml/discojs-node": ["../../discojs/discojs-node/src/"],
-
+            "@epfml/disco-server": ["../../server/src"]
         }
     },
     "include": [
-        "./**/*.ts", "../../discojs/discojs-node/src/**/*.ts"
+        "./**/*.ts", "../../discojs/discojs-node/src/**/*.ts", "../../server/src/**/*.ts"
     ],
     "exclude": ["./node_modules/**/*", "./dist/**/*"]
 }

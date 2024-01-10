@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "bun --bun --hot server.ts",
+    "dev": "bun --bun server.ts",
     "dev:nodemon": "nodemon --inspect server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

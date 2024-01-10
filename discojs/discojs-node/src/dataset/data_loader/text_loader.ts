@@ -14,6 +14,10 @@ export class NodeTextLoader extends TextLoader {
         // * batchSize to retrieve a batch at once
         // * 2 because tokens are stored as uint16 and thus require 2 bytes
         const highWaterMark = (config.blockSize + 1) * this.batchSize * 2 // (config.blockSize + config.batchSize + 1) * 2
+        if (isNaN(highWaterMark))
+            throw new Error(
+                'highWaterMark, defining the stream chunk size, is NaN but is supposed to be of type number'
+            )
         return fs.createReadStream(source, {
             highWaterMark, // set this to seq length * 2 because we store uint16,
         })
@@ -53,6 +57,7 @@ export class NodeTextLoader extends TextLoader {
         }
 
         let stream = this.getInfiniteIteratorFromFile(source, config)
+
         const requestNext = async (): Promise<number[]> => {
             const { value } = await stream.next()
             const chunk = value.toJSON().data

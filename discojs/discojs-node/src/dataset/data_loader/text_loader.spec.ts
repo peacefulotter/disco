@@ -3,12 +3,19 @@ import path from 'path'
 import { expect } from 'chai'
 import { encode } from 'gpt-tokenizer/model/text-davinci-003'
 
-import { tf, node, Task } from '../..'
+import { tf, node, Task, defaultTasks } from '../..'
 import { TextConfig } from '@epfml/discojs-core/src/dataset/data_loader'
 import {
     TokenizedDataset,
     TokenizedIterResult,
 } from '@epfml/discojs-core/src/dataset/data_loader/text_loader'
+
+/**
+ * ================================================
+ * Assumes you have followed the installation steps
+ * in disco/experiment (see README.md)
+ * ================================================
+ */
 
 const datasetsFolder = path.join(
     /* @ts-ignore */
@@ -22,11 +29,7 @@ const inputFiles = {
     train: [path.join(datasetsFolder, 'test.tokens')],
 }
 
-const wikitextTask: Task = {
-    id: 'wikitext-103',
-    displayInformation: {},
-    trainingInformation: {},
-} as Task
+const wikitextTask: Task = defaultTasks['wikitext'].getTask()
 
 const config: TextConfig & { batchSize: number } = {
     blockSize: 3,
@@ -34,13 +37,18 @@ const config: TextConfig & { batchSize: number } = {
     vocabSize: 50257,
 }
 
-const getTokenizedSample = async () => {
+const getIterator = async () => {
     const loaded = await new node.dataset.loader.NodeTextLoader(wikitextTask).loadAll(
         inputFiles,
         config
     )
     const ds = loaded.train.dataset as TokenizedDataset
     const iter = await ds.batch(config.batchSize).iterator()
+    return iter
+}
+
+const getTokenizedSample = async () => {
+    const iter = await getIterator()
     const { value, done } = (await iter.next()) as TokenizedIterResult
     return { value, done }
 }
@@ -91,5 +99,23 @@ describe('text loader', () => {
             arr.push(x[i][0], ...y[i])
         }
         expect(arr).to.eql(tokens)
+    })
+
+    it('benchmark 10.000 iterations', async () => {
+        const iterations = 10_000
+        const iter = await getIterator()
+        const benchmarkStart = Date.now()
+        for (let i = 0; i < iterations; i++) {
+            const { value } = (await iter.next()) as TokenizedIterResult
+            const { xs, ys } = value
+            xs.dispose()
+            ys.dispose()
+        }
+        const benchmarkEnd = Date.now()
+        const duration = (benchmarkEnd - benchmarkStart) / 1000
+        const ms = duration * 1000
+        console.log(
+            `Time taken: ${duration}s, time per iteration: ${(ms / iterations).toFixed(3)}ms`
+        )
     })
 })

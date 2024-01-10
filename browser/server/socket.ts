@@ -4,11 +4,10 @@ import { Server } from './types.js'
 import { dataset, node, Task } from '@epfml/discojs-node'
 import { IncomingMessage } from 'http'
 
-// TODO: store this in .env to share URL between web/ and server/
-const baseUrl = 'http://localhost:3001'
+const dummyUrl = 'http://localhost:3001' // any valid url, it DOES NOT matter
 
 const getParams = (req: IncomingMessage) => {
-    const { searchParams } = new URL(`${baseUrl}${req.url}`)
+    const { searchParams } = new URL(`${dummyUrl}${req.url}`)
     const obj = Object.fromEntries(searchParams) as dataset.WSSearchParams
     const params = {
         task: JSON.parse(obj.task) as Task,
