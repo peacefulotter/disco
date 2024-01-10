@@ -9,12 +9,10 @@ const exportWandb = async (save: any) => {
     const json = JSON.stringify(save, null, 4)
 
     const __filename = fileURLToPath(import.meta.url)
-    const dir = path.join(path.dirname(__filename), '..', '..', 'discojs', 'gpt-tjfs', 'wandb')
-    console.log(dir)
+    const dir = path.join(path.dirname(__filename), '..', '..', 'discojs', 'gpt-tfjs', 'wandb')
     await fs.mkdir(dir, { recursive: true }).catch(console.error)
 
     const p = path.join(dir, `disco_${save.init.config.platform}_${save.init.config.gpu}.json`)
-    console.log(p)
     await fs.writeFile(p, json, 'utf-8')
 }
 
