@@ -21,14 +21,14 @@ platform = sys.argv[1]
 gpu = sys.argv[2]
 
 file_name = f"disco_{platform}_{gpu}.json"
-path = os.path.join(os.path.dirname(__file__), "wandb", file_name)
+path = os.path.join(os.path.dirname(__file__), file_name)
 print("Loading file:", path)
 with open(path, "r") as f:
     save = json.load(f)
 
 init = save["init"]
 config = init["config"]
-wandb.init(config=config, project=config["wandbProject"], name=file_name)
+wandb.init(config=config, project="disco-benchmarks", name=file_name)
 for log in save["logs"]:
     wandb.log(log)
 
