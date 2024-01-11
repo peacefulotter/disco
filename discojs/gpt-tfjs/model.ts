@@ -44,7 +44,12 @@ class LogLayer_ extends tf.layers.Layer {
             }
             this.invokeCallHook(input, kwargs)
             const x = tf.util.flatten(input.arraySync())
-            console.log(this.config.name + '>', input.shape, x[0], x[x.length - 1])
+            console.log(
+                this.config.name + '>',
+                input.shape,
+                x[0],
+                x[x.length - 1]
+            )
             return input
         })
     }
@@ -55,7 +60,8 @@ class LogLayer_ extends tf.layers.Layer {
 }
 tf.serialization.registerClass(LogLayer_)
 
-const CausalSelfAttentionBase = (config: any) => new CausalSelfAttentionBase_(config)
+const CausalSelfAttentionBase = (config: any) =>
+    new CausalSelfAttentionBase_(config)
 class CausalSelfAttentionBase_ extends tf.layers.Layer {
     config: any
     blockSize: any
@@ -71,7 +77,11 @@ class CausalSelfAttentionBase_ extends tf.layers.Layer {
         this.nEmbd = config.nEmbd
         this.nHead = config.nHead
         this.dropout = config.dropout
-        this.mask = tf.linalg.bandPart(tf.ones([config.blockSize, config.blockSize]), -1, 0)
+        this.mask = tf.linalg.bandPart(
+            tf.ones([config.blockSize, config.blockSize]),
+            -1,
+            0
+        )
     }
 
     computeOutputShape(inputShape: any) {
@@ -93,14 +103,20 @@ class CausalSelfAttentionBase_ extends tf.layers.Layer {
             let [q, k, v] = tf.split(input, 3, -1)
             const [B, T, C] = k.shape
             const splitHeads = (x: any) =>
-                tf.transpose(tf.reshape(x, [B, T, this.nHead, C / this.nHead]), [0, 2, 1, 3])
+                tf.transpose(
+                    tf.reshape(x, [B, T, this.nHead, C / this.nHead]),
+                    [0, 2, 1, 3]
+                )
             q = splitHeads(q)
             k = splitHeads(k)
             v = splitHeads(v)
 
             let att = tf.mul(
                 tf.matMul(q, k, false, true),
-                tf.div(1, tf.sqrt(tf.cast(k.shape[k.shape.length - 1], 'float32')))
+                tf.div(
+                    1,
+                    tf.sqrt(tf.cast(k.shape[k.shape.length - 1], 'float32'))
+                )
             )
             att = tf.add(att, tf.mul(tf.sub(1, this.mask), -1e9))
             att = tf.softmax(att, -1)
@@ -176,7 +192,11 @@ class CausalSelfAttention_ extends tf.layers.Layer {
         this.nHead = config.nHead
         this.dropout = config.dropout
         this.bias = config.bias
-        this.mask = tf.linalg.bandPart(tf.ones([config.blockSize, config.blockSize]), -1, 0)
+        this.mask = tf.linalg.bandPart(
+            tf.ones([config.blockSize, config.blockSize]),
+            -1,
+            0
+        )
     }
 
     build(inputShape: any) {
@@ -238,7 +258,10 @@ class CausalSelfAttention_ extends tf.layers.Layer {
             const [B, T, C] = k.shape
 
             const splitHeads = (x: any) =>
-                tf.transpose(tf.reshape(x, [B, T, this.nHead, C / this.nHead]), [0, 2, 1, 3])
+                tf.transpose(
+                    tf.reshape(x, [B, T, this.nHead, C / this.nHead]),
+                    [0, 2, 1, 3]
+                )
 
             q = splitHeads(q)
             k = splitHeads(k)
@@ -246,7 +269,10 @@ class CausalSelfAttention_ extends tf.layers.Layer {
 
             let att = tf.mul(
                 tf.matMul(q, k, false, true),
-                tf.div(1, tf.sqrt(tf.cast(k.shape[k.shape.length - 1], 'float32')))
+                tf.div(
+                    1,
+                    tf.sqrt(tf.cast(k.shape[k.shape.length - 1], 'float32'))
+                )
             )
 
             const mask = this.mask.slice([0, 0], [T, T])
@@ -342,14 +368,22 @@ function Block(conf: any) {
     const config = Object.assign({ name: 'h' }, conf)
     const inputs = tf.input({ shape: [config.blockSize, config.nEmbd] })
     let x1, x2
-    x1 = tf.layers.layerNormalization({ name: config.name + '/ln_1', epsilon: 1e-5 }).apply(inputs)
+    x1 = tf.layers
+        .layerNormalization({ name: config.name + '/ln_1', epsilon: 1e-5 })
+        .apply(inputs)
     if (config.debug) {
         x1 = LogLayer({ name: config.name + '/ln_1_log' }).apply(x1)
     }
-    x1 = CausalSelfAttention(Object.assign({}, config, { name: config.name + '/attn' })).apply(x1)
+    x1 = CausalSelfAttention(
+        Object.assign({}, config, { name: config.name + '/attn' })
+    ).apply(x1)
     x1 = tf.layers.add().apply([inputs, x1 as any])
-    x2 = tf.layers.layerNormalization({ name: config.name + '/ln_2', epsilon: 1e-5 }).apply(x1)
-    x2 = MLP(Object.assign({}, config, { name: config.name + '/mlp' })).apply(x2)
+    x2 = tf.layers
+        .layerNormalization({ name: config.name + '/ln_2', epsilon: 1e-5 })
+        .apply(x1)
+    x2 = MLP(Object.assign({}, config, { name: config.name + '/mlp' })).apply(
+        x2
+    )
     x2 = tf.layers.add().apply([x1 as any, x2 as any])
     return tf.model({ name: config.name, inputs: inputs, outputs: x2 as any })
 }
@@ -399,7 +433,8 @@ function GPT(conf: any) {
         if (!Object.keys(configModels).includes(conf.modelType)) {
             throw new Error(`Invalid modelType: ${conf.modelType}`)
         }
-        const modelConfig = configModels[conf.modelType as keyof typeof configModels]
+        const modelConfig =
+            configModels[conf.modelType as keyof typeof configModels]
         Object.assign(configDefaults, modelConfig)
     }
 
@@ -446,9 +481,13 @@ function GPT(conf: any) {
     }
 
     for (let i = 0; i < config.nLayer; i++) {
-        x = Block(Object.assign({}, config, { name: config.name + '/h/' + i })).apply(x)
+        x = Block(
+            Object.assign({}, config, { name: config.name + '/h/' + i })
+        ).apply(x)
     }
-    x = tf.layers.layerNormalization({ name: config.name + '/ln_f', epsilon: 1e-5 }).apply(x)
+    x = tf.layers
+        .layerNormalization({ name: config.name + '/ln_f', epsilon: 1e-5 })
+        .apply(x)
     if (config.debug) {
         x = LogLayer({ name: 'fin/ln' }).apply(x)
     }
@@ -497,7 +536,10 @@ function generateOnce(model: any, idx: any, config: any) {
     let timePerToken = performance.now()
     tf.tidy(() => {
         const block_size = model.inputs[0].shape[1]
-        const idxCond = idx.shape[1] <= block_size ? idx : idx.slice([0, -block_size], [-1, -1])
+        const idxCond =
+            idx.shape[1] <= block_size
+                ? idx
+                : idx.slice([0, -block_size], [-1, -1])
         const logits = model.predict(idxCond)
         timePerToken = performance.now() - timePerToken
         const logitsScaled = logits
@@ -577,10 +619,18 @@ class GPTModel extends tf.LayersModel {
         Object.assign(this, gpt)
     }
 
-    async fitDataset<T>(dataset: Dataset<T>, args: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
+    async fitDataset<T>(
+        dataset: Dataset<T>,
+        args: tf.ModelFitDatasetArgs<T>
+    ): Promise<tf.History> {
         console.log('=== GPTModel custom train function ===')
         const config = { ...this.config, ...args }
-        await train(this, dataset, config, args.callbacks as training.TrainingCallbacks)
+        await train(
+            this,
+            dataset,
+            config,
+            args.callbacks as training.TrainingCallbacks
+        )
         return {} as tf.History
     }
 
@@ -604,10 +654,11 @@ class GPTLMHeadModel extends GPTModel {
 }
 
 // TODO: better type to avoid repetition between Task.trainingInformation and GPTConfig
+
 type GPTConfig = {
+    batchSize: number
     epochs?: number
     maxIter?: number
-    batchSize?: number
     blockSize?: number
     shuffle?: boolean | number | 'batch'
     lr?: number

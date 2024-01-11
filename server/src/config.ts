@@ -38,4 +38,11 @@ export class Config {
 
 const ROOT_DIR = path.join(__filename, '..', '..', '..')
 
-export const CONFIG = new Config('file://', path.join(ROOT_DIR, 'server', 'models'), 8080)
+const DEFAULT_PORT = 8080
+
+export const getConfig = (port?: number) =>
+    new Config(
+        'file://',
+        path.join(ROOT_DIR, 'server', 'models'),
+        port ?? DEFAULT_PORT
+    )

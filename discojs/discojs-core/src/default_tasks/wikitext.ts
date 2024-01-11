@@ -2,8 +2,26 @@ import { tf, training, Task, TaskProvider, TrainingSchemes } from '..'
 import { model as gpt } from '@epfml/gpt-tfjs'
 import { TFJSModel } from '../training/model'
 
+const modelConfig = {
+    epochs: 10,
+    maxIter: 10000,
+    batchSize: 4,
+    debug: false,
+    verbose: false,
+    modelType: 'gpt-nano',
+    blockSize: 128,
+    lr: 0.001,
+    shuffle: NaN,
+    weightDecay: false,
+    dropout: 0.2,
+    residDrop: 0.2,
+    embdDrop: 0.2,
+    bias: true,
+    vocabSize: 50257,
+} as const
+
 export const wikitext: TaskProvider = {
-    getTask(): Task {
+    getTask(): Task<gpt.GPTConfig> {
         return {
             id: 'wikitext-103',
             displayInformation: {
@@ -24,18 +42,19 @@ export const wikitext: TaskProvider = {
                     'An example excerpt from the dataset could be: "The history of artificial intelligence dates back to ancient times, with philosophical discussions on the nature of thought and reasoning."',
             },
             trainingInformation: {
+                dataType: 'text',
                 modelID: 'wikitext-103-raw-model',
-                maxIterations: 20,
-                epochs: 10,
-                roundDuration: 10,
                 validationSplit: 0.2, // FIXME: is this used somewhere? because train, eval and test are already split in dataset
-                batchSize: 4,
+                maxIterations: modelConfig.maxIter,
+                epochs: modelConfig.epochs,
+                batchSize: modelConfig.batchSize,
+                learningRate: modelConfig.lr,
                 modelCompileData: {
                     optimizer: 'sgd',
                     loss: 'categoricalCrossentropy',
                     metrics: ['precision', 'mse'], // 'perplexity' doesnt exist
                 },
-                dataType: 'text',
+                modelConfig,
                 /**
                  * preprocessing is done prior to training so it is not needed in my case
                  * but otherwise, one can use the following template to use a custom tokenizer
@@ -55,29 +74,15 @@ export const wikitext: TaskProvider = {
                 decentralizedSecure: true,
                 minimumReadyPeers: 3,
                 maxShareValue: 100,
-                learningRate: 0.001,
+                roundDuration: 10,
             },
         }
     },
 
     async getModel(): Promise<training.model.Model> {
-        const config: gpt.GPTConfig = {
-            debug: false,
-            verbose: false,
-            modelType: 'gpt-nano',
-            blockSize: 128,
-            lr: 0.001,
-            shuffle: NaN,
-            weightDecay: false,
-            dropout: 0.2,
-            bias: true,
-            vocabSize: 50257,
-        }
-        config.residDrop = config.dropout
-        config.embdDrop = config.dropout
-        console.log('GPT Config:', config)
+        console.log('GPT Config:', modelConfig)
         // const model = new gpt.GPTLMHeadModel(config)
-        const model = gpt.GPT(config)
+        const model = gpt.GPT(modelConfig)
         return new TFJSModel(this.getTask(), model as any as tf.LayersModel)
     },
 }

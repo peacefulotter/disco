@@ -1,32 +1,15 @@
-import { tf, training } from '@epfml/discojs-core'
+import { defaultTasks, tf, training } from '@epfml/discojs-core'
 import { AdamW, clipByGlobalNormObj } from './optimizers'
 import { Wandb } from './wandb'
-
-interface TrainConfig {
-    epochs?: number | null
-    maxIter?: number | null
-    batchSize: number
-    shuffle?: boolean | 'batch' | number
-    lr?: number
-    weightDecay?: boolean | number
-    verbose?: boolean
-}
+import { GPTConfig } from './model'
 
 export async function train(
     model: any,
     ds: any,
-    config: TrainConfig,
+    config: GPTConfig,
     callbacks: training.TrainingCallbacks
 ): Promise<void> {
-    const defaultConfig: TrainConfig = {
-        epochs: null,
-        maxIter: null,
-        batchSize: 16,
-        shuffle: true,
-        lr: 6e-4,
-        weightDecay: false,
-    }
-    config = Object.assign(defaultConfig, config || {})
+    console.log(tf.getBackend())
 
     // if (config.shuffle === true) {
     //     ds = ds.shuffle(config.batchSize * 10)
@@ -67,8 +50,9 @@ export async function train(
     }
 
     const wandb = new Wandb({
-        platform: window && typeof window !== undefined ? 'browser' : 'node',
+        platform: typeof window !== undefined ? 'browser' : 'node',
         gpu: 'nvidia-4070-ti',
+        model: config.modelType,
     })
 
     callbacks.onTrainBegin()
@@ -121,6 +105,9 @@ export async function train(
             dt_ms: Date.now() - time,
             time_s: (Date.now() - start) / 1000,
         })
+        if (iteration % 100 === 0) {
+            console.log(iteration, Date.now() - time)
+        }
         time = Date.now()
 
         // Dispose everything

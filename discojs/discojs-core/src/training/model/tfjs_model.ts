@@ -1,7 +1,7 @@
-import { dataset, tf } from '../..'
+import { Task, dataset, tf } from '../..'
 import { Model } from './model'
 import { TrainingCallbacks, Trainer } from '../trainer/trainer'
-import { train } from '@epfml/gpt-tfjs'
+import { train, model as gpt } from '@epfml/gpt-tfjs'
 
 export class TFJSModel extends Model {
     async fit(trainer: Trainer, tuple: dataset.DataSplit): Promise<void> {
@@ -16,19 +16,10 @@ export class TFJSModel extends Model {
             onBatchEnd: trainer.onBatchEnd.bind(trainer),
         }
 
-        const { trainingInformation: info } = this.task
+        const config = (this.task as Task<gpt.GPTConfig>).trainingInformation
+            .modelConfig as gpt.GPTConfig
 
-        const config = {
-            batchSize: info.batchSize,
-            epochs: info.epochs,
-            maxIter: info.maxIterations,
-            shuffle: false,
-            lr: info.learningRate,
-            weightDecay: false,
-            verbose: false,
-        }
-
-        // TODO: only valid for GPT-TFJS
+        // FIXME + TODO: only valid for GPT-TFJS
         await train(this.model, training, config, callbacks)
 
         // await this.model.fitDataset(training, {

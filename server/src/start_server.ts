@@ -9,10 +9,20 @@ const exportWandb = async (save: any) => {
     const json = JSON.stringify(save, null, 4)
 
     const __filename = fileURLToPath(import.meta.url)
-    const dir = path.join(path.dirname(__filename), '..', '..', 'discojs', 'gpt-tfjs', 'wandb')
+    const dir = path.join(
+        path.dirname(__filename),
+        '..',
+        '..',
+        'discojs',
+        'gpt-tfjs',
+        'wandb'
+    )
     await fs.mkdir(dir, { recursive: true }).catch(console.error)
 
-    const p = path.join(dir, `disco_${save.init.config.platform}_${save.init.config.gpu}.json`)
+    const p = path.join(
+        dir,
+        `disco_${save.init.config.platform}_${save.init.config.gpu}_${save.init.config.model}.json`
+    )
     await fs.writeFile(p, json, 'utf-8')
 }
 
@@ -25,9 +35,7 @@ export async function startDisco(): Promise<[http.Server, URL]> {
     // Attach a POST request handler to Disco server
     // This allows to save the WandB data collected during training to a file
     disco.server.post('/wandb', async (req, res) => {
-        console.log('============= DISCO WANDB HANDLER =============')
         const { save } = req.body
-        console.log(save)
         await exportWandb(save)
         res.send('ok')
     })

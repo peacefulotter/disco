@@ -1,4 +1,4 @@
-export type WandbConfig = { platform: string; gpu: string }
+export type WandbConfig = { platform: string; gpu: string; model: string }
 
 export type WandbSave = {
     init: {

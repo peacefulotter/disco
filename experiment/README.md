@@ -42,3 +42,4 @@ bun run dev
 
 1. Disco support for various backends (for WebGPU especially) using `tf.setBackend`, and benchmark on them
 2. Support for dedicated tfjs model, which allows custom training loop, e.g. `GPTModel extends Model`. This is partially implemented but not fully (issues in Trainer / TrainerBuilder?)
+3. Refactor Task, add generic types

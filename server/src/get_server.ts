@@ -2,7 +2,7 @@ import cors from 'cors'
 import express from 'express'
 import expressWS from 'express-ws'
 
-import { CONFIG } from './config'
+import { getConfig } from './config'
 import { Router } from './router'
 import { TasksAndModels } from './tasks'
 import { tf, Task, TaskProvider } from '@epfml/discojs-node'
@@ -27,12 +27,18 @@ export class Disco {
     }
 
     // If a model is not provided, its url must be provided in the task object
-    async addTask(task: Task | TaskProvider, model?: tf.LayersModel | URL): Promise<void> {
+    async addTask(
+        task: Task | TaskProvider,
+        model?: tf.LayersModel | URL
+    ): Promise<void> {
         await this.tasksAndModels.addTaskAndModel(task, model)
     }
 
     serve(port?: number): http.Server {
-        const wsApplier = expressWS(this.server, undefined, { leaveRouterUntouched: true })
+        const config = getConfig(port)
+        const wsApplier = expressWS(this.server, undefined, {
+            leaveRouterUntouched: true,
+        })
         const app = wsApplier.app
 
         app.enable('trust proxy')
@@ -40,11 +46,11 @@ export class Disco {
         app.use(express.json({ limit: '50mb' }))
         app.use(express.urlencoded({ limit: '50mb', extended: false }))
 
-        const baseRouter = new Router(wsApplier, this.tasksAndModels, CONFIG)
+        const baseRouter = new Router(wsApplier, this.tasksAndModels, config)
         app.use('/', baseRouter.router)
 
-        const server = app.listen(port ?? CONFIG.serverPort, () => {
-            console.log(`Disco Server listening on ${CONFIG.serverUrl.href}`)
+        const server = app.listen(config.serverPort, () => {
+            console.log(`Disco Server listening on ${config.serverUrl.href}`)
         })
 
         console.info('Disco Server initially loaded the tasks below\n')

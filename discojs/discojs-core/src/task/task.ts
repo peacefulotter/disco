@@ -1,5 +1,8 @@
 import { isDisplayInformation, DisplayInformation } from './display_information'
-import { isTrainingInformation, TrainingInformation } from './training_information'
+import {
+    isTrainingInformation,
+    TrainingInformation,
+} from './training_information'
 import { isDigest, Digest } from './digest'
 
 export type TaskID = string
@@ -16,10 +19,11 @@ export function isTask(raw: unknown): raw is Task {
         return false
     }
 
-    const { id, digest, displayInformation, trainingInformation } = raw as Record<
-        'id' | 'digest' | 'displayInformation' | 'trainingInformation',
-        unknown | undefined
-    >
+    const { id, digest, displayInformation, trainingInformation } =
+        raw as Record<
+            'id' | 'digest' | 'displayInformation' | 'trainingInformation',
+            unknown | undefined
+        >
 
     if (!isTaskID(id)) {
         return false
@@ -40,10 +44,10 @@ export function isTask(raw: unknown): raw is Task {
     return true
 }
 
-export interface Task {
+export interface Task<ModelConfig = unknown> {
     // TODO rename to ID
     id: TaskID
     digest?: Digest
     displayInformation: DisplayInformation
-    trainingInformation: TrainingInformation
+    trainingInformation: TrainingInformation<ModelConfig>
 }
