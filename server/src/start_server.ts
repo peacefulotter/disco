@@ -48,7 +48,6 @@ export async function startDisco(): Promise<[http.Server, URL]> {
 
     let addr: string
     const rawAddr = server.address()
-    console.log(rawAddr)
 
     if (rawAddr === null) {
         throw new Error('unable to get server address')

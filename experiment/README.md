@@ -30,6 +30,7 @@ bun run dev
 cd ../web
 bun install
 bun run dev
+# Navigate to http://localhost:3000 on your browser of choice and click on "train"
 ```
 
 # TODO

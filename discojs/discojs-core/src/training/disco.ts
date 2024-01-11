@@ -40,8 +40,6 @@ export class Disco {
     private readonly trainer: Promise<Trainer>
 
     constructor(task: Task, options: DiscoOptions) {
-        console.log(task.trainingInformation.scheme)
-
         if (options.scheme === undefined) {
             options.scheme = task.trainingInformation.scheme
         }
@@ -50,7 +48,9 @@ export class Disco {
         }
         if (options.client === undefined) {
             if (options.url === undefined) {
-                throw new Error('could not determine client from given parameters')
+                throw new Error(
+                    'could not determine client from given parameters'
+                )
             }
 
             if (typeof options.url === 'string') {
@@ -65,14 +65,19 @@ export class Disco {
                     )
                     break
                 case TrainingSchemes.DECENTRALIZED:
-                    options.client = new clients.decentralized.DecentralizedClient(
+                    options.client =
+                        new clients.decentralized.DecentralizedClient(
+                            options.url,
+                            task,
+                            options.aggregator
+                        )
+                    break
+                default:
+                    options.client = new clients.Local(
                         options.url,
                         task,
                         options.aggregator
                     )
-                    break
-                default:
-                    options.client = new clients.Local(options.url, task, options.aggregator)
                     break
             }
         }
@@ -83,7 +88,9 @@ export class Disco {
                     options.informant = new informants.FederatedInformant(task)
                     break
                 case TrainingSchemes.DECENTRALIZED:
-                    options.informant = new informants.DecentralizedInformant(task)
+                    options.informant = new informants.DecentralizedInformant(
+                        task
+                    )
                     break
                 default:
                     options.informant = new informants.LocalInformant(task)
@@ -110,7 +117,11 @@ export class Disco {
         this.memory = options.memory
         this.logger = options.logger
 
-        const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant)
+        const trainerBuilder = new TrainerBuilder(
+            this.memory,
+            this.task,
+            options.informant
+        )
         this.trainer = trainerBuilder.build(
             this.aggregator,
             this.client,
@@ -123,7 +134,9 @@ export class Disco {
      * @param data The data tuple
      */
     async fit(data: dataset.data.DataSplit): Promise<void> {
-        this.logger.success('Thank you for your contribution. Data preprocessing has started')
+        this.logger.success(
+            'Thank you for your contribution. Data preprocessing has started'
+        )
 
         await this.client.connect()
         const trainer = await this.trainer

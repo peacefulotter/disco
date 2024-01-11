@@ -1,4 +1,4 @@
-import { defaultTasks, tf, training } from '@epfml/discojs-core'
+import { tf, training } from '@epfml/discojs-core'
 import { AdamW, clipByGlobalNormObj } from './optimizers'
 import { Wandb } from './wandb'
 import { GPTConfig } from './model'
@@ -50,7 +50,12 @@ export async function train(
     }
 
     const wandb = new Wandb({
-        platform: typeof window !== undefined ? 'browser' : 'node',
+        ...config,
+        platform:
+            typeof window !== 'undefined' &&
+            typeof window.document !== 'undefined'
+                ? 'browser'
+                : 'node',
         gpu: 'nvidia-4070-ti',
         model: config.modelType,
     })
