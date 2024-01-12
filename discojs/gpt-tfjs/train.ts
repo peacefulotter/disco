@@ -1,8 +1,10 @@
 import { dataset, tf, training } from '@epfml/discojs-core'
 import { AdamW, clipByGlobalNormObj } from './optimizers'
-import { Wandb } from './wandb'
+import { Wandb, WandbConfig } from './wandb'
 import { GPTConfig } from './model'
 import evaluate from './evaluate'
+
+export type GPTConfigWithWandb = Required<GPTConfig> & WandbConfig
 
 const DEFAULT_CONFIG: Required<GPTConfig> = {
     lr: 0.001,
@@ -28,6 +30,18 @@ const DEFAULT_CONFIG: Required<GPTConfig> = {
     tokEmb: true,
     lmHead: true,
 }
+
+export const getConfig = (config: GPTConfig): GPTConfigWithWandb => ({
+    ...DEFAULT_CONFIG,
+    ...config,
+    platform:
+        typeof window !== 'undefined' && typeof window.document !== 'undefined'
+            ? 'browser'
+            : 'node',
+    gpu: 'nvidia-4070-ti',
+    model: config.modelType,
+    backend: tf.getBackend(),
+})
 
 const getCustomAdam = (model: any, c: Required<GPTConfig>): tf.Optimizer => {
     const includeInWeightDecay: string[] = []
@@ -59,22 +73,12 @@ export async function train(
     callbacks: training.TrainingCallbacks,
     evalDs?: dataset.Dataset
 ): Promise<void> {
-    const c = { ...DEFAULT_CONFIG, ...config }
-    console.log(tf.getBackend())
+    const c = getConfig(config)
+    console.log(c)
 
     const opt = c.weightDecay ? getCustomAdam(model, c) : tf.train.adam(c.lr)
 
-    const wandb = new Wandb({
-        ...c,
-        platform:
-            typeof window !== 'undefined' &&
-            typeof window.document !== 'undefined'
-                ? 'browser'
-                : 'node',
-        gpu: 'nvidia-4070-ti',
-        model: c.modelType,
-        backend: tf.getBackend(),
-    })
+    const wandb = new Wandb(c)
 
     callbacks.onTrainBegin()
 
@@ -143,10 +147,7 @@ export async function train(
         }
         time = Date.now()
 
-        // Dispose everything
-        loss.dispose()
-        xs.dispose()
-        ys.dispose()
+        tf.dispose([loss, xs, ys])
 
         // Check if we should stop
         iteration++

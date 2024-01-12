@@ -1,8 +1,9 @@
 'use client'
 import path from 'path'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import * as disco from '@epfml/discojs-web'
 import { main } from '@/disco/main'
+import { getConfig, GPTConfigWithWandb } from '@epfml/gpt-tfjs'
 
 const task = disco.defaultTasks.wikitext.getTask()
 const config = task.trainingInformation.modelConfig
@@ -35,6 +36,16 @@ export default function Home() {
     const [sample, setSample] =
         useState<disco.dataset.BatchedTokenizedTensorSample>()
     const [running, setRunning] = useState<boolean>(false)
+    const [config, setConfig] = useState<GPTConfigWithWandb>({})
+    const [availableBackends, setAvailableBackends] = useState<string[]>([])
+    const [backendName, setBackendName] = useState<string>(() =>
+        disco.tf.getBackend()
+    )
+
+    useEffect(() => {
+        setConfig(getConfig(task.trainingInformation.modelConfig))
+        setAvailableBackends(disco.tf.engine().backendNames())
+    }, [])
 
     const getSample = async () => {
         const datasplit = await getDatasplit(task)
@@ -51,41 +62,76 @@ export default function Home() {
         setRunning(false)
     }
 
+    const setBackend = (backendName: string) => async () => {
+        await disco.tf.setBackend(backendName)
+        await disco.tf.ready()
+
+        const tfBackend = disco.tf.getBackend()
+        if (tfBackend !== backendName) {
+            throw new Error('backend not properly set, got: ' + tfBackend)
+        }
+
+        console.log('Backend set to:', tfBackend)
+        setBackendName(tfBackend)
+    }
+
     return (
-        <main className="flex p-24 gap-8">
-            <div className="flex justify-between items-center gap-8 bg-slate-800 rounded py-4 px-8">
-                <button
-                    onClick={getSample}
-                    className="bg-slate-700 rounded px-4 py-2"
-                >
-                    Get sample
-                </button>
-                <div>
-                    <p>
-                        xs:{' '}
-                        {sample && (
-                            <b>{JSON.stringify(sample.xs.shape, null, 4)}</b>
-                        )}
-                    </p>
-                    <p>
-                        ys:{' '}
-                        {sample && (
-                            <b>{JSON.stringify(sample.ys.shape, null, 4)}</b>
-                        )}
-                    </p>
+        <main className="flex flex-col p-24 gap-8">
+            <div className="flex gap-8">
+                <div className="flex justify-between items-center gap-8 bg-slate-800 rounded py-4 px-8">
+                    <p>Backend availables: {availableBackends.join(', ')}</p>
+                    {availableBackends.map((backendName, i) => (
+                        <button
+                            key={`btn-${i}`}
+                            onClick={setBackend(backendName)}
+                            className="bg-slate-700 rounded px-4 py-2 capitalize"
+                        >
+                            {backendName}
+                        </button>
+                    ))}
+                    <p>Backend set to: {backendName}</p>
+                </div>
+                <div className="flex justify-between items-center gap-8 bg-slate-800 rounded py-4 px-8">
+                    <button
+                        onClick={getSample}
+                        className="bg-slate-700 rounded px-4 py-2"
+                    >
+                        Get sample
+                    </button>
+                    <div>
+                        <p>
+                            xs:{' '}
+                            {sample && (
+                                <b>
+                                    {JSON.stringify(sample.xs.shape, null, 4)}
+                                </b>
+                            )}
+                        </p>
+                        <p>
+                            ys:{' '}
+                            {sample && (
+                                <b>
+                                    {JSON.stringify(sample.ys.shape, null, 4)}
+                                </b>
+                            )}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex justify-between items-center gap-8 bg-slate-800 rounded p-4">
+                    <button
+                        onClick={startTraining}
+                        className="bg-slate-700 rounded px-4 py-2"
+                    >
+                        Train
+                    </button>
+                    <div className="pr-4">
+                        Running?: <b>{running ? 'true' : 'false'}</b>
+                    </div>
                 </div>
             </div>
-            <div className="flex justify-between items-center gap-8 bg-slate-800 rounded p-4">
-                <button
-                    onClick={startTraining}
-                    className="bg-slate-700 rounded px-4 py-2"
-                >
-                    Train
-                </button>
-                <div>
-                    Running?: <b>{running ? 'true' : 'false'}</b>
-                </div>
-            </div>
+            <pre className="bg-slate-800 rounded p-4 max-w-min">
+                {JSON.stringify(config, undefined, 4)}
+            </pre>
         </main>
     )
 }

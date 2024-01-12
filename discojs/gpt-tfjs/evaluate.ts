@@ -8,7 +8,6 @@ export default async function evaluate(
 ) {
     console.log('Evaluating..')
 
-    dataset = dataset.batch(config.batchSize)
     const iter = await dataset.iterator()
 
     let total_loss = 0
