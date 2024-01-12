@@ -19,10 +19,13 @@
   },
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
-    "@epfml/discojs-core": "file:../discojs-core"
+    "@epfml/discojs-core": "file:../discojs-core",
+    "gpt-tokenizer": "^2.1.2"
   },
   "devDependencies": {
-    "@types/bun": "^1.0.0",
+    "@happy-dom/global-registrator": "^13.0.2",
+    "@types/bun": "^1.0.1",
+    "@types/node": "^20.11.0",
     "mocha": "^10.2.0"
   }
 }

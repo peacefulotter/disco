@@ -1,6 +1,9 @@
+import { WebSocket } from 'ws'
 import { dataset } from '../..'
 
 export class WebTextLoader extends dataset.loader.TextLoader {
+    websockets: WebSocket[] = []
+
     /**
      * Builds a URL with the following search parameters
      * taskId: The task ID as defined by this.task.taskID
@@ -15,14 +18,18 @@ export class WebTextLoader extends dataset.loader.TextLoader {
                 config: JSON.stringify(config),
                 file,
             }
-            for (const [k, v] of Object.entries(searchParams)) brokerURL.searchParams.append(k, v)
+            for (const [k, v] of Object.entries(searchParams))
+                brokerURL.searchParams.append(k, v)
             const ws = new WebSocket(brokerURL)
             ws.onopen = () => {
                 resolve(ws)
             }
         })
 
-    async load(file: string, config: dataset.TextConfig): Promise<dataset.TokenizedDataset> {
+    async load(
+        file: string,
+        config: dataset.TextConfig
+    ): Promise<dataset.TokenizedDataset> {
         // TODO: implement a way to close websocket at the end of training
         // onTrainEnd = () => ws.close()
         const ws = await this.getWebSocket(file, config)
@@ -47,16 +54,24 @@ export class WebTextLoader extends dataset.loader.TextLoader {
         const _config = this.resolveConfig(config)
 
         const loadFromSources = async (files: string[]) => {
-            const datasets = await Promise.all(files.map((f) => this.load(f, _config)) ?? [])
+            const datasets = await Promise.all(
+                files.map((f) => this.load(f, _config)) ?? []
+            )
             const ds =
                 datasets.length > 1
-                    ? datasets.slice(1).reduce((acc, cur) => acc.concatenate(cur), datasets[0])
+                    ? datasets
+                          .slice(1)
+                          .reduce(
+                              (acc, cur) => acc.concatenate(cur),
+                              datasets[0]
+                          )
                     : datasets[0]
             return await dataset.TextData.init(ds, this.task)
         }
         return {
             train: await loadFromSources(source.train),
-            validation: source.validation && (await loadFromSources(source.validation)),
+            validation:
+                source.validation && (await loadFromSources(source.validation)),
         }
     }
 }

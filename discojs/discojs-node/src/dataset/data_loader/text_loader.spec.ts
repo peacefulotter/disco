@@ -3,7 +3,7 @@ import path from 'path'
 import { expect } from 'chai'
 import { encode } from 'gpt-tokenizer/model/text-davinci-003'
 
-import { tf, node, Task, defaultTasks } from '../..'
+import { tf, node, Task, defaultTasks, dataset } from '../..'
 import { TextConfig } from '@epfml/discojs-core/src/dataset/data_loader'
 import {
     TokenizedDataset,
@@ -25,11 +25,11 @@ const datasetsFolder = path.join(
     'wikitext-103'
 )
 
-const inputFiles = {
+const source: dataset.TextSource = {
     train: [path.join(datasetsFolder, 'test.tokens')],
 }
 
-const wikitextTask: Task = defaultTasks['wikitext'].getTask()
+const task: Task = defaultTasks.wikitext.getTask()
 
 const config: TextConfig & { batchSize: number } = {
     blockSize: 3,
@@ -38,8 +38,8 @@ const config: TextConfig & { batchSize: number } = {
 }
 
 const getIterator = async () => {
-    const loaded = await new node.dataset.loader.NodeTextLoader(wikitextTask).loadAll(
-        inputFiles,
+    const loaded = await new node.dataset.loader.NodeTextLoader(task).loadAll(
+        source,
         config
     )
     const ds = loaded.train.dataset as TokenizedDataset
@@ -69,7 +69,7 @@ const getRawTokenizedSample = async () => {
     return tokens
 }
 
-describe('text loader', () => {
+describe('node text loader', () => {
     it('loads a batched sample', async () => {
         const { value, done } = await getTokenizedSample()
         const { xs, ys } = value
@@ -77,10 +77,16 @@ describe('text loader', () => {
         const y = ys.argMax(2).flatten() // get indices of max values along last axis
 
         expect(xs.shape).to.eql([config.batchSize, config.blockSize])
-        expect(ys.shape).to.eql([config.batchSize, config.blockSize, config.vocabSize])
+        expect(ys.shape).to.eql([
+            config.batchSize,
+            config.blockSize,
+            config.vocabSize,
+        ])
         expect(x.equal([220, 198, 796, 347, 2852, 353]))
         expect(y.equal(tf.tensor([198, 796, 5199, 2852, 353, 796])))
         expect(done).to.eql(false)
+
+        tf.dispose([x, y, xs, ys])
     })
 
     it('dataset is tokenized properly', async () => {
@@ -99,6 +105,8 @@ describe('text loader', () => {
             arr.push(x[i][0], ...y[i])
         }
         expect(arr).to.eql(tokens)
+
+        tf.dispose([x, y, xs, ys])
     })
 
     it('benchmark 10.000 iterations', async () => {
@@ -108,14 +116,15 @@ describe('text loader', () => {
         for (let i = 0; i < iterations; i++) {
             const { value } = (await iter.next()) as TokenizedIterResult
             const { xs, ys } = value
-            xs.dispose()
-            ys.dispose()
+            tf.dispose([xs, ys])
         }
         const benchmarkEnd = Date.now()
-        const duration = (benchmarkEnd - benchmarkStart) / 1000
-        const ms = duration * 1000
+        const ms = benchmarkEnd - benchmarkStart
+        const duration = ms / 1000
         console.log(
-            `Time taken: ${duration}s, time per iteration: ${(ms / iterations).toFixed(3)}ms`
+            `Time taken: ${duration}s, time per iteration: ${(
+                ms / iterations
+            ).toFixed(3)}ms`
         )
     })
 })
