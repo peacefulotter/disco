@@ -20,7 +20,7 @@ export class TFJSModel extends Model {
             .modelConfig as gpt.GPTConfig
 
         // FIXME + TODO: only valid for GPT-TFJS
-        await train(this.model, training, config, callbacks)
+        await train(this.model, training, config, callbacks, validation)
 
         // await this.model.fitDataset(training, {
         //     epochs: this.task.trainingInformation.epochs,

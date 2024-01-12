@@ -2,6 +2,7 @@ import { GPTConfig } from '@/model'
 
 export type WandbConfig = GPTConfig & {
     platform: string
+    backend: string
     gpu: string
     model: string
 }

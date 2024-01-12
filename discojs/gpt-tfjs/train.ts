@@ -74,6 +74,7 @@ export async function train(
                 : 'node',
         gpu: 'nvidia-4070-ti',
         model: c.modelType,
+        backend: tf.getBackend(),
     })
 
     callbacks.onTrainBegin()

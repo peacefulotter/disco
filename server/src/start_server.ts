@@ -21,7 +21,7 @@ const exportWandb = async (save: any) => {
 
     const p = path.join(
         dir,
-        `disco_${save.init.config.platform}_${save.init.config.gpu}_${save.init.config.model}.json`
+        `disco_${save.init.config.platform}_${save.init.config.backend}_${save.init.config.gpu}_${save.init.config.model}.json`
     )
     await fs.writeFile(p, json, 'utf-8')
 }
