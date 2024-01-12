@@ -30,6 +30,9 @@ async function getDatasetSource(
 }
 
 export async function loadData(task: Task): Promise<dataset.DataSplit> {
+    // TODO: Make this even more generic so that it works for any dataset
+    // 1) replace wikitext-103 with task.id => need to document that task.id and dataset folder name should be the same then
+    // 2) move getDatasetSource to core so that the web version can use it as well
     const root = path.join(import.meta.dir, 'datasets', 'wikitext-103')
     const source = await getDatasetSource(root, ['train', 'validation'])
     const config: Partial<dataset.loader.TextConfig> = {}

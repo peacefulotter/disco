@@ -15,7 +15,7 @@ const modelConfig: gpt.GPTConfig = {
     evaluateEvery: 100,
 } as const
 
-export const wikitext: TaskProvider = {
+export const wikitext: TaskProvider<gpt.GPTConfig> = {
     getTask(): Task<gpt.GPTConfig> {
         return {
             id: 'wikitext-103',

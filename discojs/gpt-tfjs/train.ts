@@ -12,7 +12,6 @@ const DEFAULT_CONFIG: Required<GPTConfig> = {
     maxIter: 10_000,
     verbose: false,
     modelType: 'gpt-nano',
-    shuffle: NaN,
     evaluate: true,
     maxEvalBatches: 12,
     evaluateEvery: 100,

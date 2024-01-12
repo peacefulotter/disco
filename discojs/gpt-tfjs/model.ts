@@ -672,7 +672,6 @@ type GPTConfig = {
     evaluateEvery?: number
     epochs?: number
     maxIter?: number
-    shuffle?: boolean | number | 'batch'
     weightDecay?: number
     verbose?: boolean
     bias?: boolean

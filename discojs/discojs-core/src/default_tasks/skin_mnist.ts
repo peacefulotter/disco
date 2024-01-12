@@ -7,13 +7,15 @@ export const skinMnist: TaskProvider = {
             displayInformation: {
                 taskTitle: 'Skin disease classification',
                 summary: {
-                    preview: 'Can you determine the skin disease from the dermatoscopic images?',
+                    preview:
+                        'Can you determine the skin disease from the dermatoscopic images?',
                     overview:
                         'HAM10000 "Human Against Machine with 10000 training images" dataset is a large collection of multi-source dermatoscopic images of pigmented lesions from Kaggle',
                 },
                 limitations:
                     'The training data is limited to small images of size 28x28, similarly to the MNIST dataset.',
-                tradeoffs: 'Training success strongly depends on label distribution',
+                tradeoffs:
+                    'Training success strongly depends on label distribution',
                 dataFormatInformation: '',
                 dataExampleText: 'Below you find an example',
                 dataExampleImage: 'http://walidbn.com/ISIC_0024306.jpg',

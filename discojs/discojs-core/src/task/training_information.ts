@@ -146,7 +146,11 @@ export function isTrainingInformation(
     return true
 }
 
-export interface TrainingInformation<ModelConfig = unknown> {
+type ModelConfigTask<Config> = Config extends {}
+    ? { modelConfig: Config }
+    : { modelConfig?: Config } // TODO: ideally modelConfig shouldn't be available at all if Config is null or undefined i.e. if Config does not extends {}
+
+export type TrainingInformation<ModelConfig = unknown> = {
     // modelID: unique ID for the model
     modelID: string
     // maxIterations: number of iterations to run training (if epoch is specified, whatever comes first stops training)
@@ -213,12 +217,10 @@ export interface TrainingInformation<ModelConfig = unknown> {
     /**
      * ==== FOR LLMs ====
      */
-    // modelConfig: Additional config related to the model and training
-    modelConfig?: ModelConfig
     // vocabSize: vocabulary size of the tokenizer
     vocabSize?: number
     // tokenizer: tokenizer to be used for tokenizing the text
     tokenizer?: Tokenizer
     // blockSize: sequence length to be tokenized
     blockSize?: number
-}
+} & ModelConfigTask<ModelConfig>

@@ -44,8 +44,7 @@ export function isTask(raw: unknown): raw is Task {
     return true
 }
 
-export interface Task<ModelConfig = unknown> {
-    // TODO rename to ID
+export type Task<ModelConfig = unknown> = {
     id: TaskID
     digest?: Digest
     displayInformation: DisplayInformation
