@@ -22,7 +22,7 @@ backend = sys.argv[2]
 gpu = sys.argv[3]
 model = sys.argv[4]
 
-file_name = f"exp_{platform}_{backend}_{gpu}_{model}.json"
+file_name = f"disco_{platform}_{backend}_{gpu}_{model}.json"
 path = os.path.join(os.path.dirname(__file__), file_name)
 print("Loading file:", path)
 with open(path, "r") as f:

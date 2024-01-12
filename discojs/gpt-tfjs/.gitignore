@@ -1,3 +1,5 @@
 node_modules/
 wandb/*.json
 wandb/wandb/
+wandb/*run*/
+wandb/*run*/**
