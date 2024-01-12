@@ -1,4 +1,4 @@
-import { tf, training } from '@epfml/discojs-core'
+import { dataset, tf, training } from '@epfml/discojs-core'
 import { train } from './train'
 
 const Range = (config: any) => new Range_(config)
@@ -627,7 +627,7 @@ class GPTModel extends tf.LayersModel {
         const config = { ...this.config, ...args }
         await train(
             this,
-            dataset,
+            dataset as dataset.Dataset,
             config,
             args.callbacks as training.TrainingCallbacks
         )
@@ -653,17 +653,27 @@ class GPTLMHeadModel extends GPTModel {
     }
 }
 
-// TODO: better type to avoid repetition between Task.trainingInformation and GPTConfig
+type ModelType =
+    | 'gpt2'
+    | 'gpt2-medium'
+    | 'gpt2-large'
+    | 'gpt2-xl'
+    | 'gpt-mini'
+    | 'gpt-micro'
+    | 'gpt-nano'
 
 type GPTConfig = {
+    lr: number
     batchSize: number
+    blockSize: number
+    vocabSize: number
+    evaluate?: boolean
+    maxEvalBatches?: number
+    evaluateEvery?: number
     epochs?: number
     maxIter?: number
-    blockSize?: number
     shuffle?: boolean | number | 'batch'
-    lr?: number
-    weightDecay?: boolean | number
-    callbacks?: any[]
+    weightDecay?: number
     verbose?: boolean
     bias?: boolean
     debug?: boolean
@@ -673,17 +683,9 @@ type GPTConfig = {
     nLayer?: number
     nHead?: number
     nEmbd?: number
-    vocabSize?: number
     tokEmb?: boolean
     lmHead?: boolean
-    modelType:
-        | 'gpt2'
-        | 'gpt2-medium'
-        | 'gpt2-large'
-        | 'gpt2-xl'
-        | 'gpt-mini'
-        | 'gpt-micro'
-        | 'gpt-nano'
+    modelType: ModelType
 }
 
 export {

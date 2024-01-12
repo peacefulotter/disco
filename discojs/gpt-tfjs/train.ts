@@ -1,63 +1,79 @@
-import { tf, training } from '@epfml/discojs-core'
+import { dataset, tf, training } from '@epfml/discojs-core'
 import { AdamW, clipByGlobalNormObj } from './optimizers'
 import { Wandb } from './wandb'
 import { GPTConfig } from './model'
+import evaluate from './evaluate'
+
+const DEFAULT_CONFIG: Required<GPTConfig> = {
+    lr: 0.001,
+    weightDecay: 0,
+    batchSize: 2,
+    epochs: 9999,
+    maxIter: 10_000,
+    verbose: false,
+    modelType: 'gpt-nano',
+    shuffle: NaN,
+    evaluate: true,
+    maxEvalBatches: 12,
+    evaluateEvery: 100,
+    blockSize: 128,
+    vocabSize: 50257,
+    bias: true,
+    debug: false,
+    dropout: 0.2,
+    residDrop: 0.2,
+    embdDrop: 0.2,
+    nLayer: 3,
+    nHead: 3,
+    nEmbd: 48,
+    tokEmb: true,
+    lmHead: true,
+}
+
+const getCustomAdam = (model: any, c: Required<GPTConfig>): tf.Optimizer => {
+    const includeInWeightDecay: string[] = []
+    const excludeFromWeightDecay: string[] = []
+
+    model.getNamedWeights().forEach((v: any) => {
+        if (
+            v.name.includes('bias') ||
+            v.name.includes('normalization') ||
+            v.name.includes('emb')
+        ) {
+            excludeFromWeightDecay.push(v.name)
+        } else {
+            includeInWeightDecay.push(v.name)
+        }
+    })
+    return new AdamW({
+        learningRate: c.lr,
+        weightDecayRate: c.weightDecay,
+        includeInWeightDecay,
+        excludeFromWeightDecay,
+    })
+}
 
 export async function train(
-    model: any,
-    ds: any,
+    model: tf.LayersModel,
+    ds: dataset.Dataset,
     config: GPTConfig,
-    callbacks: training.TrainingCallbacks
+    callbacks: training.TrainingCallbacks,
+    evalDs?: dataset.Dataset
 ): Promise<void> {
+    const c = { ...DEFAULT_CONFIG, ...config }
     console.log(tf.getBackend())
 
-    // if (config.shuffle === true) {
-    //     ds = ds.shuffle(config.batchSize * 10)
-    // } else if (config.shuffle === 'batch') {
-    //     ds = ds.shuffle(config.batchSize)
-    // } else if (config.shuffle && !isNaN(config.shuffle)) {
-    //     ds = ds.shuffle(config.shuffle)
-    // }
-    // ds = ds.batch(config.batchSize)
-
-    var includeInWeightDecay: string[] = []
-    var excludeFromWeightDecay: string[] = []
-
-    if (config.weightDecay === true) {
-        config.weightDecay = 1e-4
-    }
-    let opt: tf.Optimizer
-    if (config.weightDecay) {
-        model.getNamedWeights().forEach((v: any) => {
-            if (
-                v.name.includes('bias') ||
-                v.name.includes('normalization') ||
-                v.name.includes('emb')
-            ) {
-                excludeFromWeightDecay.push(v.name)
-            } else {
-                includeInWeightDecay.push(v.name)
-            }
-        })
-        opt = new AdamW({
-            learningRate: config.lr,
-            weightDecayRate: config.weightDecay,
-            includeInWeightDecay,
-            excludeFromWeightDecay,
-        })
-    } else {
-        opt = tf.train.adam(config.lr)
-    }
+    const opt = c.weightDecay ? getCustomAdam(model, c) : tf.train.adam(c.lr)
 
     const wandb = new Wandb({
-        ...config,
+        ...c,
         platform:
             typeof window !== 'undefined' &&
             typeof window.document !== 'undefined'
                 ? 'browser'
                 : 'node',
         gpu: 'nvidia-4070-ti',
-        model: config.modelType,
+        model: c.modelType,
     })
 
     callbacks.onTrainBegin()
@@ -76,7 +92,7 @@ export async function train(
         if (next.done) {
             callbacks.onEpochEnd(epoch)
             epoch++
-            if (config.epochs && epoch > config.epochs) {
+            if (c.epochs && epoch > c.epochs) {
                 break
             }
             callbacks.onEpochBegin(epoch)
@@ -101,15 +117,27 @@ export async function train(
 
         callbacks.onBatchEnd(iteration)
 
-        // Log wandb
-        wandb.log({
+        // Create a WandB log payload, evaluate every
+        const payload = {
             'train/perplexity': Math.exp(lossVal),
             'train/loss': lossVal,
             iter: iteration,
             mem: tf.memory().numBytes,
             dt_ms: Date.now() - time,
             time_s: (Date.now() - start) / 1000,
-        })
+        }
+
+        if (c.evaluate && iteration % c.evaluateEvery === 0) {
+            if (!evalDs) {
+                throw new Error(
+                    'No evaluation dataset provided but config.evaluate is set'
+                )
+            }
+            const evalPayload = await evaluate(model, evalDs, c)
+            Object.assign(payload, evalPayload)
+        }
+
+        wandb.log(payload)
         if (iteration % 100 === 0) {
             console.log(iteration, Date.now() - time)
         }
@@ -122,11 +150,11 @@ export async function train(
 
         // Check if we should stop
         iteration++
-        if (config.maxIter && iteration > config.maxIter) {
+        if (c.maxIter && iteration > c.maxIter) {
             break
         }
 
-        if (config.verbose) {
+        if (c.verbose) {
             console.log('Mem:', tf.memory())
             console.log(`Epoch: ${epoch}, Step: ${iteration}, Loss: ${lossVal}`)
         }

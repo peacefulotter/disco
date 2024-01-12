@@ -2,22 +2,17 @@ import { tf, training, Task, TaskProvider, TrainingSchemes } from '..'
 import { model as gpt } from '@epfml/gpt-tfjs'
 import { TFJSModel } from '../training/model'
 
-const modelConfig = {
-    epochs: 10,
-    maxIter: 10000,
-    batchSize: 4,
-    debug: false,
-    verbose: false,
+const modelConfig: gpt.GPTConfig = {
     modelType: 'gpt-nano',
+    epochs: 10,
+    maxIter: 10_000,
+    batchSize: 4,
     blockSize: 128,
     lr: 0.001,
-    shuffle: NaN,
-    weightDecay: false,
-    dropout: 0.2,
-    residDrop: 0.2,
-    embdDrop: 0.2,
-    bias: true,
     vocabSize: 50257,
+    evaluate: true,
+    maxEvalBatches: 12,
+    evaluateEvery: 100,
 } as const
 
 export const wikitext: TaskProvider = {
@@ -46,7 +41,7 @@ export const wikitext: TaskProvider = {
                 modelID: 'wikitext-103-raw-model',
                 validationSplit: 0.2, // FIXME: is this used somewhere? because train, eval and test are already split in dataset
                 maxIterations: modelConfig.maxIter,
-                epochs: modelConfig.epochs,
+                epochs: modelConfig.epochs ?? 1,
                 batchSize: modelConfig.batchSize,
                 learningRate: modelConfig.lr,
                 modelCompileData: {
