@@ -29,7 +29,7 @@ const task = defaultTasks.wikitext.getTask()
 const config = {
     ...task.trainingInformation.modelConfig,
     blockSize: 16,
-    batchSize: 4,
+    batchSize: 16,
     vocabSize: 50257,
 }
 
@@ -72,6 +72,7 @@ const getRawTokenizedSample = async (
     const tokens = encode(chunk).slice(0, tokensLength)
     return tokens
 }
+
 describe('node text loader', () => {
     test('loads a batched sample', async () => {
         const iter = await getIterator(config)

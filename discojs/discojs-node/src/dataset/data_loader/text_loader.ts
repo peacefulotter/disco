@@ -66,6 +66,13 @@ export class NodeTextLoader extends TextLoader {
                     stream = newStream.stream
                     iter = newStream.iter
                     sample = await iter.next()
+                    if (!sample || !sample.value || sample.done) {
+                        throw new Error(
+                            'Getting a sample from the file stream still fails after retrying, most likely the file at ' +
+                                stream.path +
+                                ' is empty..'
+                        )
+                    }
                 }
                 return sample
             },

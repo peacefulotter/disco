@@ -36,9 +36,9 @@ export type TextSource = {
 }
 
 export type ParsedWSSearchParams = {
+    id: string
     config: TextConfig
     file: string
-    task: Task
 }
 export type WSSearchParams = Record<keyof ParsedWSSearchParams, string>
 
@@ -103,13 +103,11 @@ export abstract class TextLoader extends DataLoader<
             let next = iterator.next()
             while (true) {
                 const { value: chunk } = await next
-                // const chunk = value.toJSON().data
                 if (!chunk) break
 
                 // pre-fetch the next chunk even before actually requesting it
                 next = iterator.next()
 
-                // console.time('generator')
                 for (let i = 0; i < batchSize; i++) {
                     const xs = []
                     const ys = []
@@ -122,11 +120,10 @@ export abstract class TextLoader extends DataLoader<
                         if (j > 0) ys.push(token)
                     }
 
-                    // console.time('next')
+                    console.time('next')
                     yield { xs, ys }
-                    // console.timeEnd('next')
+                    console.timeEnd('next')
                 }
-                // console.timeEnd('generator')
             }
         }
 

@@ -53,8 +53,13 @@ google-chrome --enable-unsafe-webgpu --enable-features=Vulkan,UseSkiaRenderer &
 The following will run tests for the web and node text loaders. You need to follow the prerequisites + installation steps before being able to run the tests.
 
 ```sh
-cd discojs
-bun test text_loader.spec.ts # will run the tests with a filename matching text_loader.spec.ts
+# Since the following commands will also test the web version,
+# the websocket server needs to be running
+cd browser/server/
+bun --bun socket.ts
+# In a new terminal tab, run the tests
+cd ../../discojs
+bun --bun test text_loader.spec.ts # will run tests with a filename matching text_loader.spec.ts
 ```
 
 # TODO

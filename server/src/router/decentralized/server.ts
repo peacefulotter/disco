@@ -1,7 +1,6 @@
 import { v4 as randomUUID } from 'uuid'
 import express from 'express'
 import msgpack from 'msgpack-lite'
-import WebSocket from 'ws'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { ParsedQs } from 'qs'
 import { Map, Set } from 'immutable'
@@ -50,9 +49,16 @@ export class Decentralized extends Server {
         task: Task,
         ws: any, // TODO: fix this: typeof import('ws'),
         model: training.model.Model,
-        req: express.Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>
+        req: express.Request<
+            ParamsDictionary,
+            any,
+            any,
+            ParsedQs,
+            Record<string, any>
+        >
     ): void {
-        const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
+        const minimumReadyPeers =
+            task.trainingInformation?.minimumReadyPeers ?? 3
 
         // Peer id of the message sender
         let peerId = randomUUID()
@@ -81,7 +87,10 @@ export class Decentralized extends Server {
 
                         // Add the new task and its set of nodes
                         if (!this.readyNodes.has(task.id)) {
-                            this.readyNodes = this.readyNodes.set(task.id, Set())
+                            this.readyNodes = this.readyNodes.set(
+                                task.id,
+                                Set()
+                            )
                         }
 
                         ws.send(msgpack.encode(msg), { binary: true })
@@ -95,27 +104,38 @@ export class Decentralized extends Server {
                             peer: peerId,
                             signal: msg.signal,
                         }
-                        this.connections.get(msg.peer)?.send(msgpack.encode(forward))
+                        this.connections
+                            .get(msg.peer)
+                            ?.send(msgpack.encode(forward))
                         break
                     }
                     case MessageTypes.PeerIsReady: {
                         const peers = this.readyNodes.get(task.id)?.add(peerId)
                         if (peers === undefined) {
-                            throw new Error(`task ${task.id} doesn't exist in ready buffer`)
+                            throw new Error(
+                                `task ${task.id} doesn't exist in ready buffer`
+                            )
                         }
                         this.readyNodes = this.readyNodes.set(task.id, peers)
 
                         if (peers.size >= minimumReadyPeers) {
-                            this.readyNodes = this.readyNodes.set(task.id, Set())
+                            this.readyNodes = this.readyNodes.set(
+                                task.id,
+                                Set()
+                            )
 
                             peers
                                 .map((id) => {
-                                    const readyPeerIDs: messages.PeersForRound = {
-                                        type: MessageTypes.PeersForRound,
-                                        peers: peers.delete(id).toArray(),
-                                    }
+                                    const readyPeerIDs: messages.PeersForRound =
+                                        {
+                                            type: MessageTypes.PeersForRound,
+                                            peers: peers.delete(id).toArray(),
+                                        }
                                     const encoded = msgpack.encode(readyPeerIDs)
-                                    return [id, encoded] as [client.NodeID, Buffer]
+                                    return [id, encoded] as [
+                                        client.NodeID,
+                                        Buffer
+                                    ]
                                 })
                                 .map(([id, encoded]) => {
                                     const conn = this.connections.get(id)
@@ -124,9 +144,14 @@ export class Decentralized extends Server {
                                             `peer ${id} marked as ready but not connection to it`
                                         )
                                     }
-                                    return [conn, encoded] as [WebSocket, Buffer]
+                                    return [conn, encoded] as [
+                                        WebSocket,
+                                        Buffer
+                                    ]
                                 })
-                                .forEach(([conn, encoded]) => conn.send(encoded))
+                                .forEach(([conn, encoded]) =>
+                                    conn.send(encoded)
+                                )
                         }
                         break
                     }

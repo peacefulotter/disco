@@ -82,8 +82,10 @@ export default async function preprocess() {
     const streams = await getFileStreams(datasetDir)
 
     for await (const { file, getStream } of streams) {
-        if (!file.includes('test')) continue
+        const label = `Preprocessing ${file}`
+        console.time(label)
         await preprocessStream(datasetDir, file, getStream)
+        console.timeEnd(label)
     }
 }
 

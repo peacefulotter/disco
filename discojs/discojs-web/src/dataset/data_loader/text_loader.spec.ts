@@ -27,7 +27,7 @@ const datasetsFolder = path.join(
 )
 const source: disco.dataset.TextSource = {
     train: [path.join(datasetsFolder, 'test.tokens')],
-    validation: [path.join(datasetsFolder, 'validation.tokens')],
+    // validation: [path.join(datasetsFolder, 'validation.tokens')],
 }
 
 const task = disco.defaultTasks.wikitext.getTask()
@@ -38,8 +38,8 @@ const config = {
     vocabSize: 50257,
 }
 
-const BENCHMARK_ITERATIONS = 1_000
-const BENCHMARK_BLOCK_SIZES = [16, 32, 64, 128]
+const BENCHMARK_ITERATIONS = 1000
+const BENCHMARK_BLOCK_SIZES = [32] // [16, 32, 64, 128]
 
 // config: gpt.GPTConfig
 const getIterator = async (config: any) => {
@@ -143,7 +143,7 @@ describe('web text loader', () => {
         disco.tf.dispose([xs, ys, x, y])
     })
 
-    test(`benchmark ${BENCHMARK_ITERATIONS} iterations for block sizes: ${BENCHMARK_BLOCK_SIZES}`, async () => {
+    test.only(`benchmark ${BENCHMARK_ITERATIONS} iterations for block sizes: ${BENCHMARK_BLOCK_SIZES}`, async () => {
         for (const blockSize of BENCHMARK_BLOCK_SIZES) {
             const iter = await getIterator({ ...config, blockSize })
             const benchmarkStart = Date.now()

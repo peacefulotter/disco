@@ -20,12 +20,14 @@
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
     "@epfml/discojs-core": "file:../discojs-core",
-    "gpt-tokenizer": "^2.1.2"
+    "gpt-tokenizer": "^2.1.2",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^13.0.2",
     "@types/bun": "^1.0.1",
     "@types/node": "^20.11.0",
+    "@types/uuid": "^9.0.7",
     "mocha": "^10.2.0"
   }
 }
