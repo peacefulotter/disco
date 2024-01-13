@@ -35,7 +35,11 @@ export type TextSource = {
     validation?: string[]
 }
 
-export type ParsedWSSearchParams = { config: TextConfig; file: string; task: Task }
+export type ParsedWSSearchParams = {
+    config: TextConfig
+    file: string
+    task: Task
+}
 export type WSSearchParams = Record<keyof ParsedWSSearchParams, string>
 
 type AsyncTokenizedGenerator = AsyncGenerator<TokenizedSample, void, unknown>
@@ -45,9 +49,14 @@ type AsyncTokenizedGenerator = AsyncGenerator<TokenizedSample, void, unknown>
  * @epfml/discojs-web and @epfml/discojs-node.
  */
 // TODO: implement shuffle: dataset.shuffle(BUFFER_SIZE)
-export abstract class TextLoader extends DataLoader<string, TextSource, TextConfig> {
+export abstract class TextLoader extends DataLoader<
+    string,
+    TextSource,
+    TextConfig
+> {
     // Default config required to define TextConfig but leave DataConfig optional
-    static DEFAULT_CONFIG: Required<Omit<TextConfig, keyof DataConfig>> & DataConfig = {
+    static DEFAULT_CONFIG: Required<Omit<TextConfig, keyof DataConfig>> &
+        DataConfig = {
         blockSize: 16,
         vocabSize: 50257,
     }
@@ -77,7 +86,7 @@ export abstract class TextLoader extends DataLoader<string, TextSource, TextConf
      */
     async getCoreDataset(
         config: TextConfig,
-        requestNext: () => Promise<number[]>
+        iterator: AsyncIterator<Buffer, Buffer, Buffer>
     ): Promise<TokenizedDataset> {
         const { vocabSize } = config
         const sampleSize = config.blockSize + 1
@@ -91,10 +100,16 @@ export abstract class TextLoader extends DataLoader<string, TextSource, TextConf
         const batchSize = this.batchSize
 
         async function* generator(): AsyncTokenizedGenerator {
+            let next = iterator.next()
             while (true) {
-                const chunk = await requestNext()
+                const { value: chunk } = await next
+                // const chunk = value.toJSON().data
                 if (!chunk) break
 
+                // pre-fetch the next chunk even before actually requesting it
+                next = iterator.next()
+
+                // console.time('generator')
                 for (let i = 0; i < batchSize; i++) {
                     const xs = []
                     const ys = []
@@ -106,21 +121,30 @@ export abstract class TextLoader extends DataLoader<string, TextSource, TextConf
                         if (j < sampleSize - 1) xs.push(token)
                         if (j > 0) ys.push(token)
                     }
+
+                    // console.time('next')
                     yield { xs, ys }
+                    // console.timeEnd('next')
                 }
+                // console.timeEnd('generator')
             }
         }
 
         // cast as any because tf.data.generator does not take a type AsyncGenerator (but it works)
-        return tf.data.generator(generator as any).map((v: any & TokenizedSample) => ({
-            xs: tf.tensor1d(v.xs, 'int32'),
-            ys: tf.oneHot(v.ys, vocabSize),
-        })) as TokenizedDataset
+        return tf.data
+            .generator(generator as any)
+            .map((v: any & TokenizedSample) => ({
+                xs: tf.tensor1d(v.xs, 'int32'),
+                ys: tf.oneHot(v.ys, vocabSize),
+            })) as TokenizedDataset
     }
 
     abstract load(source: string, config: TextConfig): Promise<TokenizedDataset>
 
-    abstract loadAll(source: TextSource, config?: Partial<TextConfig>): Promise<DataSplit>
+    abstract loadAll(
+        source: TextSource,
+        config?: Partial<TextConfig>
+    ): Promise<DataSplit>
 
     async createData(dataset: Dataset): Promise<Data> {
         return await TextData.init(dataset, this.task)

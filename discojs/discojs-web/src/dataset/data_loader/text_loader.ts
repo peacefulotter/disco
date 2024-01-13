@@ -1,4 +1,4 @@
-import { WebSocket } from 'ws'
+import { WebSocket, type MessageEvent } from 'ws'
 import { dataset } from '../..'
 
 export class WebTextLoader extends dataset.loader.TextLoader {
@@ -30,20 +30,24 @@ export class WebTextLoader extends dataset.loader.TextLoader {
         file: string,
         config: dataset.TextConfig
     ): Promise<dataset.TokenizedDataset> {
-        // TODO: implement a way to close websocket at the end of training
+        // TODO: /!\ implement a way to close websocket at the end of training
         // onTrainEnd = () => ws.close()
         const ws = await this.getWebSocket(file, config)
 
-        const requestNext = async () =>
-            new Promise<number[]>((resolve) => {
-                ws.onmessage = (payload) => {
-                    const data = JSON.parse(payload.data as string)
-                    resolve(data)
-                }
-                setTimeout(() => ws.send('req'), 1)
-            })
+        const iterator = {
+            next: () =>
+                new Promise<IteratorResult<Buffer, Buffer>>((resolve) => {
+                    // console.time('ws send and receive')
+                    ws.onmessage = (payload: MessageEvent) => {
+                        // const data = JSON.parse(payload.data as string)
+                        // console.timeEnd('ws send and receive')
+                        resolve({ value: payload.data as Buffer, done: false })
+                    }
+                    ws.send('req')
+                }),
+        }
 
-        const dataset = await this.getCoreDataset(config, requestNext)
+        const dataset = await this.getCoreDataset(config, iterator)
         return dataset
     }
 
@@ -68,6 +72,7 @@ export class WebTextLoader extends dataset.loader.TextLoader {
                     : datasets[0]
             return await dataset.TextData.init(ds, this.task)
         }
+
         return {
             train: await loadFromSources(source.train),
             validation:

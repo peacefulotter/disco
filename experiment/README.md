@@ -48,6 +48,15 @@ google-chrome --enable-unsafe-webgpu --enable-features=Vulkan,UseSkiaRenderer &
 ./chrome-webgpu.sh # equivalent to command above
 ```
 
+# Running tests
+
+The following will run tests for the web and node text loaders. You need to follow the prerequisites + installation steps before being able to run the tests.
+
+```sh
+cd discojs
+bun test text_loader.spec.ts # will run the tests with a filename matching text_loader.spec.ts
+```
+
 # TODO
 
 1. Benchmark all

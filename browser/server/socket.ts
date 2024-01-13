@@ -25,11 +25,19 @@ const initWebsockets = async (server: Server) => {
 
         const { task, config, file } = getParams(req)
         const loader = new node.dataset.loader.NodeTextLoader(task)
-        const requestNext = await loader.getFileStreamIterator(file, config)
+        const iterator = await loader.getInfiniteBufferIteratorFromFile(
+            file,
+            config
+        )
+
+        let next = iterator.next()
 
         ws.addEventListener('message', async () => {
-            const chunk = await requestNext()
-            ws.send(JSON.stringify(chunk))
+            const { value: chunk } = await next
+            ws.send(chunk)
+
+            // same as in core text-loader, we pre-fetch the next chunk even before actually requesting it
+            next = iterator.next()
         })
     })
 }
