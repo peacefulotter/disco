@@ -1,6 +1,6 @@
 import path from 'path'
 import { startDisco } from '@epfml/disco-server'
-import { dataset, defaultTasks, node } from '@epfml/discojs-node'
+import { tf, dataset, defaultTasks, node } from '@epfml/discojs-node'
 
 const getParams = (searchParams: URLSearchParams) => {
     const obj = Object.fromEntries(searchParams) as dataset.WSSearchParams
@@ -23,6 +23,16 @@ const database: Record<string, WebsocketStatus> = {}
 // A mapping between taskId and defaultTask would be enough
 // what about custom tasks though?
 const task = defaultTasks.wikitext.getTask()
+
+// The websocket server only serves the dataset, not need for any GPU backend
+const done = await tf.setBackend('cpu')
+console.log(
+    'Backend set?',
+    done,
+    'to',
+    tf.engine().backendName,
+    tf.getBackend()
+)
 
 Bun.serve({
     async fetch(req, server) {

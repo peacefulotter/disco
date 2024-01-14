@@ -77,7 +77,7 @@ export class WebTextLoader extends dataset.loader.TextLoader {
     // TODO: make brokerURL configurable and at least stored in .env
     // or automatically retrieved and compatible with websocket server somehow
     static readonly BROKER_URL = 'ws://localhost:3001/ws'
-    static readonly CACHE_SIZE: number = 4
+    static readonly CACHE_SIZE: number = 10
     websockets: WebSocket[] = []
 
     /**

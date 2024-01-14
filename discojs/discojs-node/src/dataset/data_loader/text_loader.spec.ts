@@ -19,9 +19,11 @@ const datasetsFolder = path.join(
     'datasets',
     'wikitext-103'
 )
+const trainFile = 'test'
+
 const source: dataset.TextSource = {
-    train: [path.join(datasetsFolder, 'test.tokens')],
-    validation: [path.join(datasetsFolder, 'validation.tokens')],
+    train: [path.join(datasetsFolder, `${trainFile}.tokens`)],
+    // validation: [path.join(datasetsFolder, 'validation.tokens')],
 }
 
 const task = defaultTasks.wikitext.getTask()
@@ -42,7 +44,8 @@ const getIterator = async (config: any) => {
         config
     )
     const ds = loaded.train.dataset as dataset.TokenizedDataset
-    const iter = await ds.batch(config.batchSize).iterator()
+    // const iter = await ds.batch(config.batchSize).iterator()
+    const iter = await ds.iterator()
     return {
         next: async () => {
             const { value } = (await iter.next()) as dataset.TokenizedIterResult
@@ -61,10 +64,10 @@ const getRawTokenizedSample = async (
     sampleSize: number,
     tokensLength: number
 ) => {
-    const wikiRaw = fs.createReadStream(path.join(datasetsFolder, 'test'), {
+    const wikiRaw = fs.createReadStream(path.join(datasetsFolder, trainFile), {
         encoding: 'utf8',
         start: 0,
-        end: sampleSize,
+        end: sampleSize * 1.5, // * 1.5 to make sure we have enough tokens
     })
     const iter = wikiRaw.iterator()
     const { value: chunk } = await iter.next()
