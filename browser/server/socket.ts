@@ -28,6 +28,7 @@ Bun.serve({
     async fetch(req, server) {
         const url = new URL(req.url)
         const { id, config, file } = getParams(url.searchParams)
+        console.log(config)
         const loader = new node.dataset.loader.NodeTextLoader(task)
         const iterator = await loader.getInfiniteBufferIteratorFromFile(
             file,
@@ -45,6 +46,7 @@ Bun.serve({
             }
             const status = database[id]
             const data = await status.next
+            // console.log(data, pos)
             ws.send(JSON.stringify({ ...data, pos }))
 
             // same as in core text-loader, we pre-fetch the next chunk even before actually requesting it

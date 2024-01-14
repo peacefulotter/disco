@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-/* @ts-ignore */
 import { describe, test, expect } from 'bun:test'
 import { encode, decode } from 'gpt-tokenizer/model/text-davinci-003'
 
@@ -29,7 +28,7 @@ const task = defaultTasks.wikitext.getTask()
 const config = {
     ...task.trainingInformation.modelConfig,
     blockSize: 16,
-    batchSize: 16,
+    batchSize: 4,
     vocabSize: 50257,
 }
 

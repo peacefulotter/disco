@@ -6,7 +6,6 @@ window.console = oldConsole
 
 import fs from 'fs'
 import path from 'path'
-/* @ts-ignore */
 import { describe, test, expect } from 'bun:test'
 import { encode, decode } from 'gpt-tokenizer/esm/model/text-davinci-003'
 import * as disco from '../..'
@@ -25,8 +24,11 @@ const datasetsFolder = path.join(
     'datasets',
     'wikitext-103'
 )
+
+const trainFile = 'test'
+
 const source: disco.dataset.TextSource = {
-    train: [path.join(datasetsFolder, 'test.tokens')],
+    train: [path.join(datasetsFolder, `${trainFile}.tokens`)],
     // validation: [path.join(datasetsFolder, 'validation.tokens')],
 }
 
@@ -39,7 +41,7 @@ const config = {
 }
 
 const BENCHMARK_ITERATIONS = 1000
-const BENCHMARK_BLOCK_SIZES = [32] // [16, 32, 64, 128]
+const BENCHMARK_BLOCK_SIZES = [128] // [16, 32, 64, 128]
 
 // config: gpt.GPTConfig
 const getIterator = async (config: any) => {
@@ -47,7 +49,8 @@ const getIterator = async (config: any) => {
         task
     ).loadAll(source, config)
     const ds = loaded.train.dataset as disco.dataset.TokenizedDataset
-    const iter = await ds.batch(config.batchSize).iterator()
+    // const iter = await ds.batch(config.batchSize).iterator()
+    const iter = await ds.iterator()
     return {
         next: async () => {
             const { value } =
@@ -75,12 +78,12 @@ const getRawTokenizedSample = async (
             '..',
             '..',
             datasetsFolder,
-            'test'
+            trainFile
         ),
         {
             encoding: 'utf8',
             start: 0,
-            end: sampleSize,
+            end: sampleSize * 1.5, // * 1.5 to make sure we have enough tokens
         }
     )
     const iter = wikiRaw.iterator()
@@ -131,6 +134,7 @@ describe('web text loader', () => {
         const xs_arr = await xs.array()
         const ys_arr = await (ys.argMax(2) as disco.tf.Tensor2D).array() // get indices of max values along last axis
         const sample: number[] = []
+
         for (let i = 0; i < config.batchSize; i++) {
             sample.push(xs_arr[i][0], ...ys_arr[i])
         }
@@ -143,7 +147,7 @@ describe('web text loader', () => {
         disco.tf.dispose([xs, ys, x, y])
     })
 
-    test.only(`benchmark ${BENCHMARK_ITERATIONS} iterations for block sizes: ${BENCHMARK_BLOCK_SIZES}`, async () => {
+    test(`benchmark ${BENCHMARK_ITERATIONS} iterations for block sizes: ${BENCHMARK_BLOCK_SIZES}`, async () => {
         for (const blockSize of BENCHMARK_BLOCK_SIZES) {
             const iter = await getIterator({ ...config, blockSize })
             const benchmarkStart = Date.now()

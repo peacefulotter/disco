@@ -65,7 +65,10 @@ class Cache<E> {
 }
 
 type MessageData = {
-    value: Buffer
+    value: {
+        type: 'Buffer'
+        data: number[]
+    }
     done: boolean
     pos: number
 }
@@ -74,7 +77,7 @@ export class WebTextLoader extends dataset.loader.TextLoader {
     // TODO: make brokerURL configurable and at least stored in .env
     // or automatically retrieved and compatible with websocket server somehow
     static readonly BROKER_URL = 'ws://localhost:3001/ws'
-    static readonly CACHE_SIZE: number = 100
+    static readonly CACHE_SIZE: number = 4
     websockets: WebSocket[] = []
 
     /**
@@ -109,7 +112,7 @@ export class WebTextLoader extends dataset.loader.TextLoader {
         // onTrainEnd = () => ws.close()
         const { ws, id } = await this.getWebSocket(file, config)
 
-        const cache = await Cache.init<IteratorResult<Buffer, Buffer>>(
+        const cache = await Cache.init<IteratorResult<number[], number[]>>(
             WebTextLoader.CACHE_SIZE,
             (pos) => ws.send(JSON.stringify({ pos, id })),
             (c) => {
@@ -117,7 +120,7 @@ export class WebTextLoader extends dataset.loader.TextLoader {
                     const { value, done, pos } = JSON.parse(
                         payload.data as string
                     ) as MessageData
-                    c.put(pos, { value, done })
+                    c.put(pos, { value: value.data, done })
                 }
             }
         )

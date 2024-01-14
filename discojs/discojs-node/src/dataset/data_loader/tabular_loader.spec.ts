@@ -1,7 +1,6 @@
-import { assert, expect } from 'chai'
 import { List } from 'immutable'
-
 import { tf, node, Task } from '../..'
+import { describe, test, expect } from 'bun:test'
 
 const inputFiles = ['../../example_training_data/titanic_train.csv']
 
@@ -22,7 +21,7 @@ const titanicMock: Task = {
 } as unknown as Task
 
 describe('tabular loader', () => {
-    it('loads a single sample', async () => {
+    test('loads a single sample', async () => {
         const loaded = new node.dataset.loader.NodeTabularLoader(
             titanicMock,
             ','
@@ -39,7 +38,7 @@ describe('tabular loader', () => {
          * They do NOT apply any transform/conversion, which is left to the
          * dataset builder.
          */
-        expect(sample).to.eql({
+        expect(sample).toEqual({
             value: {
                 xs: [1, 3, 22, 1, 0, 7.25],
                 ys: [0],
@@ -48,7 +47,7 @@ describe('tabular loader', () => {
         })
     })
 
-    it('shuffles samples', async () => {
+    test('shuffles samples', async () => {
         const titanic = titanicMock
         const loader = new node.dataset.loader.NodeTabularLoader(titanic, ',')
         const config = {
@@ -73,6 +72,6 @@ describe('tabular loader', () => {
                         .dataSync()[0]
             )
             .reduce((acc: number, e) => acc + e)
-        assert(misses > 0)
+        expect(misses).toBeGreaterThan(0)
     })
 })

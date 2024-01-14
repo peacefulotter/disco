@@ -1,7 +1,7 @@
 import { readdir } from 'fs/promises'
 import path from 'path'
 import { dataset, Task, node } from '@epfml/discojs-node/src'
-import { TOKENIZED_FILE_EXTENSION } from './core/preprocess'
+import { TOKENIZED_FILE_EXTENSION } from './preprocess'
 
 async function getDatasetSource(
     root: string,

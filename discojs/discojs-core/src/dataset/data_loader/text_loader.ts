@@ -1,4 +1,4 @@
-import { Task, tf } from '../../'
+import { tf } from '../../'
 import { Dataset } from '../dataset'
 import { TextData, Data, DataSplit } from '../data'
 import { DataConfig, DataLoader } from '.'
@@ -6,6 +6,7 @@ import { DataConfig, DataLoader } from '.'
 export interface TextConfig extends DataConfig {
     blockSize: number
     vocabSize: number
+    batchSize?: number
 }
 
 type TokenizedSample = {
@@ -42,13 +43,21 @@ export type ParsedWSSearchParams = {
 }
 export type WSSearchParams = Record<keyof ParsedWSSearchParams, string>
 
-type AsyncTokenizedGenerator = AsyncGenerator<TokenizedSample, void, unknown>
+// type AsyncTokenizedGenerator = AsyncGenerator<TokenizedSample, void, unknown>
+type AsyncTokenizedGenerator = AsyncGenerator<
+    BatchedTokenizedTensorSample,
+    void,
+    unknown
+>
+
+type CoreElement = number[] | Buffer | Uint8Array
+type CoreIterator = AsyncIterator<CoreElement, CoreElement, CoreElement>
 
 /**
  * Text data loader whose instantiable implementation is delegated by the platform-dependent Disco subprojects, namely,
  * @epfml/discojs-web and @epfml/discojs-node.
  */
-// TODO: implement shuffle: dataset.shuffle(BUFFER_SIZE)
+// TODO: does shuffle work for the text loader? -> add tests
 export abstract class TextLoader extends DataLoader<
     string,
     TextSource,
@@ -57,21 +66,21 @@ export abstract class TextLoader extends DataLoader<
     // Default config required to define TextConfig but leave DataConfig optional
     static DEFAULT_CONFIG: Required<Omit<TextConfig, keyof DataConfig>> &
         DataConfig = {
-        blockSize: 16,
+        blockSize: 128,
         vocabSize: 50257,
+        batchSize: 4,
     }
 
-    batchSize: number
-
-    constructor(protected task: Task) {
-        super(task)
-        this.batchSize = this.task.trainingInformation.batchSize
-        if (!this.batchSize)
-            throw new Error(
-                'batch size is undefined, define a batchSize in your task training information (task.trainingInformation.batchSize)'
-            )
+    // TODO: remove this when refactor TASK is done
+    // and finally requires batchSize, blockSize and vocabSize
+    // to be required for any text task!
+    getBatchSize(config: TextConfig): number {
+        return config.batchSize || this.task.trainingInformation.batchSize
     }
 
+    // TODO: remove this when refactor TASK is done
+    // and finally requires batchSize, blockSize and vocabSize
+    // to be required for any text task!
     resolveConfig(config?: Partial<TextConfig>): TextConfig {
         return Object.assign({}, TextLoader.DEFAULT_CONFIG, config)
     }
@@ -86,54 +95,59 @@ export abstract class TextLoader extends DataLoader<
      */
     async getCoreDataset(
         config: TextConfig,
-        iterator: AsyncIterator<Buffer, Buffer, Buffer>
+        iterator: CoreIterator
     ): Promise<TokenizedDataset> {
-        const { vocabSize } = config
-        const sampleSize = config.blockSize + 1
-
         const toUInt16 = (low: number, high: number) => {
             low &= 0xff
             high &= 0xff
             return (high << 8) | low
         }
 
-        const batchSize = this.batchSize
+        const { vocabSize, blockSize } = config
+        const batchSize = this.getBatchSize(config)
+        const sampleSize = blockSize + 1
 
         async function* generator(): AsyncTokenizedGenerator {
             let next = iterator.next()
             while (true) {
+                // console.time('waiting')
                 const { value: chunk } = await next
+                // console.timeEnd('waiting')
                 if (!chunk) break
 
                 // pre-fetch the next chunk even before actually requesting it
                 next = iterator.next()
 
+                const xs = tf.buffer([batchSize, blockSize], 'int32')
+                const ys = tf.buffer([batchSize, blockSize, vocabSize], 'int32')
+
                 for (let i = 0; i < batchSize; i++) {
-                    const xs = []
-                    const ys = []
                     for (let j = 0; j < sampleSize; j++) {
                         const idx = (i * sampleSize + j) * 2
                         const low = chunk[idx]
                         const high = chunk[idx + 1]
                         const token = toUInt16(low, high)
-                        if (j < sampleSize - 1) xs.push(token)
-                        if (j > 0) ys.push(token)
+                        if (j < sampleSize - 1) xs.set(token, i, j)
+                        if (j > 0) ys.set(1, i, j - 1, token)
                     }
-
-                    console.time('next')
-                    yield { xs, ys }
-                    console.timeEnd('next')
                 }
+
+                const x = xs.toTensor()
+                const y = ys.toTensor()
+                const res = {
+                    xs: x as tf.Tensor2D,
+                    ys: y as tf.Tensor3D,
+                }
+                yield res
             }
         }
 
         // cast as any because tf.data.generator does not take a type AsyncGenerator (but it works)
-        return tf.data
-            .generator(generator as any)
-            .map((v: any & TokenizedSample) => ({
-                xs: tf.tensor1d(v.xs, 'int32'),
-                ys: tf.oneHot(v.ys, vocabSize),
-            })) as TokenizedDataset
+        return tf.data.generator(generator as any)
+        // .map((v: any & TokenizedSample) => ({
+        //     xs: tf.tensor1d(v.xs, 'int32'),
+        //     ys: tf.oneHot(v.ys, vocabSize),
+        // })) as TokenizedDataset
     }
 
     abstract load(source: string, config: TextConfig): Promise<TokenizedDataset>

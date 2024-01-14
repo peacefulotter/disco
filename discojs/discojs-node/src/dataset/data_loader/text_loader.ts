@@ -1,14 +1,57 @@
 import { dataset } from '../..'
 import fs from 'fs'
-import {
-    TextSource,
-    TextConfig,
-    TextLoader,
-    TokenizedDataset,
-} from '@epfml/discojs-core/src/dataset/data_loader/text_loader'
 import { List } from 'immutable'
 
-export class NodeTextLoader extends TextLoader {
+/*
+
+TODO: Bun.file().stream() is kind of broken for now
+See: https://github.com/oven-sh/bun/pull/7506
+and: https://github.com/oven-sh/bun/issues/7057
+When the PR is merged, we can probably use the following code:
+
+const stream = Bun.file(source).stream()
+async function* generator() {
+    for await (const chunk of stream) {
+        console.log('GENERATOR', chunk.length)
+        yield chunk
+    }
+}
+return { stream, iter: generator() }
+
+
+async getInfiniteBufferIteratorFromFile(
+        source: string,
+        config: dataset.TextConfig
+    ): Promise<AsyncIterator<Uint8Array, Uint8Array, Uint8Array>> {
+        const getStream = async () => {
+            return await this.getFileStream(source, config)
+        }
+        let { stream, iter } = await getStream()
+        return {
+            next: async () => {
+                let sample = await iter.next()
+                if (!sample || !sample.value || sample.done) {
+                    await stream.cancel()
+                    const newStream = await getStream()
+                    stream = newStream.stream
+                    iter = newStream.iter
+                    sample = await iter.next()
+                    if (!sample || !sample.value || sample.done) {
+                        throw new Error(
+                            'Getting a sample from the file stream still fails after retrying, most likely the file at ' +
+                                source +
+                                ' is empty..'
+                        )
+                    }
+                }
+                return sample as IteratorResult<Uint8Array, Uint8Array>
+            },
+        }
+    }
+
+*/
+
+export class NodeTextLoader extends dataset.loader.TextLoader {
     /**
      * Creates a file stream from a dataset filename.
      * This stream will contain a specific number of bytes
@@ -19,22 +62,22 @@ export class NodeTextLoader extends TextLoader {
      * @param config: TextConfig
      * @returns a file stream
      */
-    async getFileStream(source: string, config: TextConfig) {
-        // blockSize + 1 = input size (size of x = blockSize, size of y = blockSize shifted right by 1, thus the + 1)
-        // * batchSize to retrieve a batch at once
-        // * 2 because tokens are stored as uint16 and thus require 2 bytes
-        const highWaterMark = (config.blockSize + 1) * this.batchSize * 2 // (config.blockSize + config.batchSize + 1) * 2
-        if (isNaN(highWaterMark))
-            throw new Error(
-                'highWaterMark, defining the stream chunk size, is NaN but is supposed to be of type number'
-            )
-
+    getFileStream(source: string, chunkSize: number) {
         return new Promise<fs.ReadStream>((resolve) => {
             const stream = fs.createReadStream(source, {
-                highWaterMark, // set this to seq length * 2 because we store uint16,
+                fd: undefined,
+                highWaterMark: chunkSize,
             })
             stream.on('readable', () => resolve(stream))
         })
+    }
+
+    getChunkSize(config: dataset.TextConfig) {
+        const batchSize = this.getBatchSize(config)
+        // blockSize + 1 = input size (size of x = blockSize, size of y = blockSize shifted right by 1, thus the + 1)
+        // * batchSize to retrieve a batch at once
+        // * 2 because tokens are stored as uint16 and thus require 2 bytes
+        return (config.blockSize + 1) * batchSize * 2
     }
 
     /**
@@ -47,39 +90,45 @@ export class NodeTextLoader extends TextLoader {
      */
     async getInfiniteBufferIteratorFromFile(
         source: string,
-        config: TextConfig
+        config: dataset.TextConfig
     ): Promise<AsyncIterator<Buffer, Buffer, Buffer>> {
-        const getStream = async () => {
-            const stream = await this.getFileStream(source, config)
-            return {
-                stream,
-                iter: stream.iterator() as AsyncIterableIterator<Buffer>,
-            }
-        }
-        let { stream, iter } = await getStream()
+        const chunkSize = this.getChunkSize(config)
+
+        if (isNaN(chunkSize))
+            throw new Error(
+                'chunk size, is NaN but is supposed to be of type number'
+            )
+
+        const getStream = async () =>
+            await this.getFileStream(source, chunkSize)
+
+        let stream = await getStream()
         return {
             next: async () => {
-                let sample = await iter.next()
-                if (!sample || !sample.value || sample.done) {
+                let buffer = (await stream.read(chunkSize)) as
+                    | Buffer
+                    | undefined
+                if (!buffer) {
                     stream.close()
-                    const newStream = await getStream()
-                    stream = newStream.stream
-                    iter = newStream.iter
-                    sample = await iter.next()
-                    if (!sample || !sample.value || sample.done) {
+                    stream = await getStream()
+                    buffer = await stream.read(chunkSize)
+                    if (!buffer) {
                         throw new Error(
                             'Getting a sample from the file stream still fails after retrying, most likely the file at ' +
-                                stream.path +
+                                source +
                                 ' is empty..'
                         )
                     }
                 }
-                return sample
+                return { value: buffer, done: false }
             },
         }
     }
 
-    async load(source: string, config: TextConfig): Promise<TokenizedDataset> {
+    async load(
+        source: string,
+        config: dataset.TextConfig
+    ): Promise<dataset.TokenizedDataset> {
         const requestNext = await this.getInfiniteBufferIteratorFromFile(
             source,
             config
@@ -89,8 +138,8 @@ export class NodeTextLoader extends TextLoader {
     }
 
     async loadAll(
-        source: TextSource,
-        config?: Partial<TextConfig>
+        source: dataset.TextSource,
+        config?: Partial<dataset.TextConfig>
     ): Promise<dataset.DataSplit> {
         const _config = this.resolveConfig(config)
         const split: Partial<dataset.DataSplit> = {}

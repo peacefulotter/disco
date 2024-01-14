@@ -24,7 +24,7 @@ cd ../experiment
 bun install
 # FIXME: npm i -S ../discojs/discojs-node/
 ./install-wikitext.sh
-bun ./core/preprocess.ts
+bun ./preprocess.ts
 bun run dev
 
 # -- For web version only:

@@ -1,4 +1,4 @@
-import { assert, expect } from 'chai'
+import { describe, test, expect } from 'bun:test'
 import { List, Map, Range } from 'immutable'
 import fs from 'fs'
 
@@ -38,7 +38,7 @@ const LOADERS = {
 const FILES = Map(DIRS).map(readFilesFromDir).toObject()
 
 describe('image loader', () => {
-    it('loads single sample without label', async () => {
+    test('loads single sample without label', async () => {
         const file = '../../example_training_data/9-mnist-example.png'
         const singletonDataset = await LOADERS.MNIST.load(file)
         const imageContent = tf.node.decodeImage(fs.readFileSync(file))
@@ -46,37 +46,37 @@ describe('image loader', () => {
             (
                 await singletonDataset.toArrayForTest()
             ).map(async (entry) => {
-                expect(await imageContent.bytes()).eql(
+                expect(await imageContent.bytes()).toEqual(
                     await (entry as tf.Tensor).bytes()
                 )
             })
         )
     })
 
-    it('loads multiple samples without labels', async () => {
+    test('loads multiple samples without labels', async () => {
         const imagesContent = FILES.CIFAR10.map((file) =>
             tf.node.decodeImage(fs.readFileSync(file))
         )
         const datasetContent = await (
             await LOADERS.CIFAR10.loadAll(FILES.CIFAR10, { shuffle: false })
         ).train.dataset.toArray()
-        expect(datasetContent.length).equal(imagesContent.length)
-        expect((datasetContent[0] as tf.Tensor3D).shape).eql(
-            imagesContent[0].shape
+        expect(datasetContent.length).toBe(imagesContent.length)
+        expect((datasetContent[0] as tf.Tensor3D).shape).toEqual(
+            imagesContent[0].shape as [number, number, number]
         )
     })
 
-    it('loads single sample with label', async () => {
+    test('loads single sample with label', async () => {
         const path = DIRS.CIFAR10 + '0.png'
         const imageContent = tf.node.decodeImage(fs.readFileSync(path))
         const datasetContent = await (
             await LOADERS.CIFAR10.load(path, { labels: ['example'] })
         ).toArray()
-        expect((datasetContent[0] as any).xs.shape).eql(imageContent.shape)
-        expect((datasetContent[0] as any).ys).eql('example')
+        expect((datasetContent[0] as any).xs.shape).toEqual(imageContent.shape)
+        expect((datasetContent[0] as any).ys).toBe('example')
     })
 
-    it('loads multiple samples with labels', async () => {
+    test('loads multiple samples with labels', async () => {
         const labels = Range(0, 24).map((label) => label % 10)
         const stringLabels = labels.map((label) => label.toString())
         const oneHotLabels = List(
@@ -97,7 +97,7 @@ describe('image loader', () => {
             ).train.dataset.toArray()
         )
 
-        expect(datasetContent.size).equal(imagesContent.size)
+        expect(datasetContent.size).toBe(imagesContent.size)
         datasetContent
             .zip(imagesContent)
             .zip(oneHotLabels)
@@ -113,12 +113,12 @@ describe('image loader', () => {
                     throw new Error('unexpected type')
                 }
                 const { xs, ys } = actual as { xs: tf.Tensor; ys: number[] }
-                expect(xs.shape).eql(sample?.shape)
-                expect(ys).eql(label)
+                expect(xs.shape).toEqual(sample?.shape as any)
+                expect(ys).toEqual(label as any)
             })
     })
 
-    it('loads samples in order', async () => {
+    test('loads samples in order', async () => {
         const loader = new node.dataset.loader.NodeImageLoader(cifar10Mock)
         const dataset = await (
             await loader.loadAll(FILES.CIFAR10, { shuffle: false })
@@ -129,25 +129,25 @@ describe('image loader', () => {
             .forEach(async ([s, f]) => {
                 const sample = (await (await loader.load(f)).toArray())[0]
                 if (!tf.equal(s as tf.Tensor, sample as tf.Tensor).all()) {
-                    assert(false)
+                    expect(false).toBe(true)
                 }
             })
-        assert(true)
+        expect(true).toBe(true)
     })
 
-    it('shuffles list', async () => {
+    test('shuffles list', async () => {
         const loader = new node.dataset.loader.NodeImageLoader(cifar10Mock)
         const list = Range(0, 100_000).toArray()
         const shuffled = [...list]
 
         loader.shuffle(shuffled)
-        expect(list).to.not.eql(shuffled)
+        expect(list).not.toEqual(shuffled)
 
         shuffled.sort((a, b) => a - b)
-        expect(list).to.eql(shuffled)
+        expect(list).toEqual(shuffled)
     })
 
-    it('shuffles samples', async () => {
+    test('shuffles samples', async () => {
         const loader = new node.dataset.loader.NodeImageLoader(cifar10Mock)
         const dataset = await (
             await loader.loadAll(FILES.CIFAR10, { shuffle: false })
@@ -166,9 +166,9 @@ describe('image loader', () => {
                         .dataSync()[0]
             )
             .reduce((acc: number, e) => acc + e)
-        assert(misses > 0)
+        expect(misses).toBeGreaterThan(0)
     })
-    it('validation split', async () => {
+    test('validation split', async () => {
         const validationSplit = 0.2
         const imagesContent = FILES.CIFAR10.map((file) =>
             tf.node.decodeImage(fs.readFileSync(file))
@@ -183,14 +183,14 @@ describe('image loader', () => {
         const trainSize = Math.floor(
             imagesContent.length * (1 - validationSplit)
         )
-        expect((await datasetContent.train.dataset.toArray()).length).equal(
+        expect((await datasetContent.train.dataset.toArray()).length).toBe(
             trainSize
         )
         if (datasetContent.validation === undefined) {
-            assert(false)
+            expect(false).toBe(true)
         }
         expect(
-            (await datasetContent.validation.dataset.toArray()).length
-        ).equal(imagesContent.length - trainSize)
+            (await (datasetContent as any).validation.dataset.toArray()).length
+        ).toEqual(imagesContent.length - trainSize)
     })
 })
