@@ -56,8 +56,7 @@ Bun.serve({
             }
             const status = database[id]
             const data = await status.next
-            // console.log(data, pos)
-            ws.send(JSON.stringify({ ...data, pos }))
+            ws.send(JSON.stringify({ ...data, pos }), false)
 
             // same as in core text-loader, we pre-fetch the next chunk even before actually requesting it
             status.next = status.iterator.next()

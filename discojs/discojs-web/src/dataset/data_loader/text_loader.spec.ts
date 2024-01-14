@@ -147,7 +147,7 @@ describe('web text loader', () => {
         disco.tf.dispose([xs, ys, x, y])
     })
 
-    test(`benchmark ${BENCHMARK_ITERATIONS} iterations for block sizes: ${BENCHMARK_BLOCK_SIZES}`, async () => {
+    test.only(`benchmark ${BENCHMARK_ITERATIONS} iterations for block sizes: ${BENCHMARK_BLOCK_SIZES}`, async () => {
         for (const blockSize of BENCHMARK_BLOCK_SIZES) {
             const iter = await getIterator({ ...config, blockSize })
             const benchmarkStart = Date.now()
