@@ -4,11 +4,20 @@ import { dataset } from '../..'
 import { Cache } from './cache'
 import { CacheData } from './worker'
 
+type MessageData = {
+    value: {
+        type: 'Buffer'
+        data: number[]
+    }
+    done: boolean
+    pos: number
+}
+
 export class WebTextLoader extends dataset.loader.TextLoader {
     // TODO: make brokerURL configurable and at least stored in .env
     // or automatically retrieved and compatible with websocket server somehow
     static readonly BROKER_URL = 'ws://localhost:3001/ws'
-    static readonly CACHE_SIZE: number = 2
+    static readonly CACHE_SIZE: number = 100
 
     // /**
     //  * Builds a URL with the following search parameters
@@ -43,7 +52,10 @@ export class WebTextLoader extends dataset.loader.TextLoader {
                 CACHE_SIZE: WebTextLoader.CACHE_SIZE,
             },
         } as WorkerOptions)
+
         return new Promise<Worker>((resolve) => {
+            // waiting for a message from the worker to inform the loader
+            // that the websocket connection is opened
             worker.onmessage = () => {
                 resolve(worker)
             }
@@ -63,19 +75,24 @@ export class WebTextLoader extends dataset.loader.TextLoader {
 
         const cache = await Cache.init<IteratorResult<number[], number[]>>(
             WebTextLoader.CACHE_SIZE,
-            () => {
+            (pos, init) => {
+                if (!init) worker.postMessage(JSON.stringify({ pos, init }))
                 // console.log(Date.now(), 'WS requesting next value')
-                worker.postMessage('')
             },
-            (c) => {
-                worker.onmessage = (payload: globalThis.MessageEvent<any>) => {
-                    const { value, done, pos } = JSON.parse(
-                        payload.data as string
-                    ) as CacheData
-                    c.put(pos, { value, done })
-                }
-            }
+            (c) => {},
+            1
         )
+
+        worker.onmessage = (payload: globalThis.MessageEvent<any>) => {
+            const { value, done, pos } = JSON.parse(
+                payload.data as string
+            ) as MessageData
+            // console.log('LOADER got value for', pos)
+            cache.put(pos, { value: value.data, done })
+        }
+
+        // Inform the worker that he can now start to send messages
+        worker.postMessage('init')
 
         // const cache = await Cache.init<IteratorResult<number[], number[]>>(
         //     WebTextLoader.CACHE_SIZE,
