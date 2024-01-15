@@ -24,8 +24,7 @@ export class Cache<E> {
         private readonly request: (
             pos: number,
             init?: boolean
-        ) => void | Promise<void>,
-        private readonly id: number
+        ) => void | Promise<void>
     ) {
         this.cache = Array.from({ length }, () => new Deferred<E>())
     }
@@ -34,10 +33,9 @@ export class Cache<E> {
     static async init<E>(
         length: number,
         request: (pos: number, init?: boolean) => void | Promise<void>,
-        initializer: (c: Cache<E>) => void,
-        id: number
+        initializer: (c: Cache<E>) => void
     ): Promise<Cache<E>> {
-        const cache = new Cache<E>(length, request, id)
+        const cache = new Cache<E>(length, request)
         initializer(cache)
         for (let pos = 0; pos < length; pos++) {
             cache.request(pos, true)
@@ -52,16 +50,7 @@ export class Cache<E> {
 
     async next(): Promise<E> {
         const eltOrDeffered = this.cache[this.position]
-        // const time = Date.now()
-        //console.time(`${time} ${this.position}`)
-        // if (this.id === 1) {
-        //     console.time('cache')
-        // }
         const elt = await eltOrDeffered.promise
-        // console.timeEnd(`${time} ${this.position}`)
-        // if (this.id === 1) {
-        //     console.timeEnd('cache')
-        // }
         const pos = this.position
         this.cache[pos] = new Deferred<E>()
         this.request(pos)
