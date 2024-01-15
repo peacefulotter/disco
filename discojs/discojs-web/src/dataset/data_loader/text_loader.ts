@@ -1,25 +1,65 @@
+import { randomUUID } from 'crypto'
 import { dataset } from '../..'
-import { Cache } from './cache'
+import { Cache, Deferred } from './cache'
 import { CacheData } from './worker'
+
+type MessageData = {
+    value: {
+        type: 'Buffer'
+        data: number[]
+    }
+    done: boolean
+    pos: number
+}
 
 export class WebTextLoader extends dataset.loader.TextLoader {
     static readonly CACHE_SIZE: number = 10
 
-    getWorker = (file: string, config: dataset.TextConfig) => {
-        const workerURL = new URL('worker.ts', import.meta.url).href
-        const worker = new Worker(workerURL, {
-            env: {
-                FILE: file,
-                CONFIG: JSON.stringify(config),
-                CACHE_SIZE: WebTextLoader.CACHE_SIZE,
-            },
-        } as WorkerOptions)
+    // ========================= WORKER + CACHE =========================
+    // TODO: make this faster than just having a ws instance in the loader
+    // getWorker = (file: string, config: dataset.TextConfig) => {
+    //     const workerURL = new URL('worker.ts', import.meta.url).href
+    //     const worker = new Worker(workerURL, {
+    //         env: {
+    //             FILE: file,
+    //             CONFIG: JSON.stringify(config),
+    //             CACHE_SIZE: WebTextLoader.CACHE_SIZE,
+    //         },
+    //     } as WorkerOptions)
 
-        return new Promise<Worker>((resolve) => {
+    //     return new Promise<Worker>((resolve) => {
+    //         // waiting for a message from the worker to inform the loader
+    //         // that the websocket connection is opened
+    //         worker.onmessage = () => {
+    //             resolve(worker)
+    //         }
+    //     })
+    // }
+
+    getWebsocket(file: string, config: dataset.TextConfig) {
+        const BROKER_URL = 'ws://localhost:3001/ws'
+        const url = new URL(BROKER_URL)
+
+        const id = randomUUID()
+        const searchParams: dataset.WSSearchParams = {
+            id,
+            config: JSON.stringify(config),
+            file,
+        }
+        for (const [k, v] of Object.entries(searchParams))
+            url.searchParams.append(k, v)
+
+        const ws = new WebSocket(url)
+
+        ws.onerror = (err) => {
+            console.error(err)
+        }
+
+        return new Promise<{ ws: WebSocket; id: string }>((resolve) => {
             // waiting for a message from the worker to inform the loader
             // that the websocket connection is opened
-            worker.onmessage = () => {
-                resolve(worker)
+            ws.onopen = () => {
+                resolve({ ws, id })
             }
         })
     }
@@ -31,29 +71,39 @@ export class WebTextLoader extends dataset.loader.TextLoader {
         // TODO: /!\ implement a way to close websocket at the end of training
         // onTrainEnd = () => ws.close()
 
-        const worker = await this.getWorker(file, config)
+        // ========================= WORKER + CACHE =========================
+        // TODO: make this faster than just having a ws instance in the loader
+        // const worker = await this.getWorker(file, config)
+        // const cache = await Cache.init<CacheData>(
+        //     WebTextLoader.CACHE_SIZE,
+        //     (pos, init) => {
+        //         worker.postMessage(JSON.stringify({ pos, init }))
+        //     },
+        //     (c) => {
+        //         worker.onmessage = (payload: globalThis.MessageEvent<any>) => {
+        //             const sample = JSON.parse(
+        //                 payload.data as string
+        //             ) as CacheData
+        //             c.put(sample.pos, sample)
+        //         }
+        //     }
+        // )
+        const { ws, id } = await this.getWebsocket(file, config)
+        const cache = new Deferred<{ value: number[]; done: boolean }>()
 
-        const cache = await Cache.init<CacheData>(
-            WebTextLoader.CACHE_SIZE,
-            (pos, init) => {
-                worker.postMessage(JSON.stringify({ pos, init }))
-            },
-            (c) => {
-                worker.onmessage = (payload: globalThis.MessageEvent<any>) => {
-                    const sample = JSON.parse(
-                        payload.data as string
-                    ) as CacheData
-                    c.put(sample.pos, sample)
-                }
-            }
-        )
+        ws.onmessage = (payload: globalThis.MessageEvent<any>) => {
+            const sample = JSON.parse(payload.data as string) as MessageData
+            cache.resolve({ value: sample.value.data, done: sample.done })
+        }
 
         // iterator just to have a way to console.time the next() call
         const iterator = {
             next: async () => {
-                // console.time('wait')
-                const sample = await cache.next()
-                //  console.timeEnd('wait')
+                ws.send(JSON.stringify({ pos: 0, id }))
+                console.time('wait')
+                const sample = await cache.promise
+                console.timeEnd('wait')
+                cache.reset()
                 return sample
             },
         }
