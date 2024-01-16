@@ -110,9 +110,7 @@ export abstract class TextLoader extends DataLoader<
         async function* generator(): AsyncTokenizedGenerator {
             let next = iterator.next()
             while (true) {
-                // console.time('waiting')
                 const { value: chunk } = await next
-                // console.timeEnd('waiting')
                 if (!chunk) break
 
                 // pre-fetch the next chunk even before actually requesting it

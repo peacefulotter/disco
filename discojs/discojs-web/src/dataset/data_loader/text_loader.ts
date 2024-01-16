@@ -100,9 +100,7 @@ export class WebTextLoader extends dataset.loader.TextLoader {
         const iterator = {
             next: async () => {
                 ws.send(JSON.stringify({ pos: 0, id }))
-                console.time('wait')
                 const sample = await cache.promise
-                console.timeEnd('wait')
                 cache.reset()
                 return sample
             },

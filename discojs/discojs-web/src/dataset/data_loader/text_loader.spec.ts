@@ -41,7 +41,7 @@ const config = {
 }
 
 const BENCHMARK_ITERATIONS = 1000
-const BENCHMARK_BLOCK_SIZES = [128] // [16, 32, 64, 128]
+const BENCHMARK_BLOCK_SIZES = [16, 32, 64, 128]
 
 // config: gpt.GPTConfig
 const getIterator = async (config: any) => {
@@ -49,16 +49,25 @@ const getIterator = async (config: any) => {
         task
     ).loadAll(source, config)
     const ds = loaded.train.dataset as disco.dataset.TokenizedDataset
-    // const iter = await ds.batch(config.batchSize).iterator()
     const iter = await ds.iterator()
     return {
         next: async () => {
             const { value } =
                 (await iter.next()) as disco.dataset.TokenizedIterResult
-            const { xs, ys } = value
-            const x = xs.flatten()
-            const y = (ys.argMax(2) as disco.tf.Tensor2D).flatten() // get indices of max values along last axis
-            return { xs, ys, x, y }
+            return { xs: value.xs, ys: value.ys }
+        },
+    }
+}
+
+const getIteratorArray = async (config: any) => {
+    const iter = await getIterator(config)
+    return {
+        next: async () => {
+            const { xs, ys } = await iter.next()
+            const x = await xs.array()
+            const y = await (ys.argMax(2) as disco.tf.Tensor2D).array() // get indices of max values along last axis
+            disco.tf.dispose([xs, ys])
+            return { x, y }
         },
     }
 }
@@ -95,7 +104,7 @@ const getRawTokenizedSample = async (
 describe('web text loader', () => {
     test('loads a batched sample', async () => {
         const iter = await getIterator(config)
-        const { xs, ys, x, y } = await iter.next()
+        const { xs, ys } = await iter.next()
 
         expect(xs.shape).toEqual([config.batchSize, config.blockSize])
         expect(ys.shape).toEqual([
@@ -103,48 +112,42 @@ describe('web text loader', () => {
             config.blockSize,
             config.vocabSize,
         ])
-        disco.tf.dispose([xs, ys, x, y])
+        disco.tf.dispose([xs, ys])
     })
 
     test('x without [0] equals y without [-1]', async () => {
         const TEST_SIZE = 10
-        const iter = await getIterator(config)
+        const iter = await getIteratorArray(config)
         for (let i = 0; i < TEST_SIZE; i++) {
-            const { xs, ys, x, y } = await iter.next()
-            const x_arr = await xs.array()
-            const y_arr = await (ys.argMax(2) as disco.tf.Tensor2D).array()
+            const { x, y } = await iter.next()
             for (let i = 0; i < config.batchSize; i++) {
                 // console.log('x=', decode(x_arr[i]).trim())
                 // console.log('y=', decode(y_arr[i]).trim())
-                expect(x_arr[i].slice(1)).toEqual(y_arr[i].slice(0, -1))
+                expect(x[i].slice(1)).toEqual(y[i].slice(0, -1))
             }
-            disco.tf.dispose([xs, ys, x, y])
         }
     })
 
     test('dataset is tokenized properly', async () => {
-        const iter = await getIterator(config)
-        const { xs, ys, x, y } = await iter.next()
+        const iter = await getIteratorArray(config)
+        const { x, y } = await iter.next()
 
         /**
          * Flatten the batch by taking the first token in x and the rest in y, since y is x shifted by 1 + 1 token
          * e.g. [a, b, c, d, e, f] -> x = [a, b, c, d, e] and y = [b, c, d, e, f]
          * thus x[0] + y = [a, b, c, d, e, f]
          **/
-        const xs_arr = await xs.array()
-        const ys_arr = await (ys.argMax(2) as disco.tf.Tensor2D).array() // get indices of max values along last axis
+
         const sample: number[] = []
 
         for (let i = 0; i < config.batchSize; i++) {
-            sample.push(xs_arr[i][0], ...ys_arr[i])
+            sample.push(x[i][0], ...y[i])
         }
         const textLength = decode(sample).length
         const tokens = await getRawTokenizedSample(textLength, sample.length)
 
         expect(sample.length).toBe(tokens.length)
         expect(sample).toEqual(tokens)
-
-        disco.tf.dispose([xs, ys, x, y])
     })
 
     test.only(`benchmark ${BENCHMARK_ITERATIONS} iterations for block sizes: ${BENCHMARK_BLOCK_SIZES}`, async () => {
@@ -152,8 +155,8 @@ describe('web text loader', () => {
             const iter = await getIterator({ ...config, blockSize })
             const benchmarkStart = Date.now()
             for (let i = 0; i < BENCHMARK_ITERATIONS; i++) {
-                const { xs, ys, x, y } = await iter.next()
-                disco.tf.dispose([xs, ys, x, y])
+                const { xs, ys } = await iter.next()
+                disco.tf.dispose([xs, ys])
             }
             const benchmarkEnd = Date.now()
             const ms = benchmarkEnd - benchmarkStart
