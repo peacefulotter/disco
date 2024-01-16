@@ -17,11 +17,10 @@
     "homepage": "https://github.com/epfml/disco#readme",
     "devDependencies": {
         "@koush/wrtc": "^0.5.3",
-        "@types/bun": "^1.0.0",
+        "@types/bun": "^1.0.22",
         "@types/msgpack-lite": "^0.1.11",
         "@types/simple-peer": "^9.11.8",
         "@types/webrtc": "^0.0.41",
-        "bun-types": "^1.0.16",
         "chai": "^5.0.0"
     },
     "dependencies": {

@@ -1,72 +1,97 @@
 'use client'
 import path from 'path'
 import { useEffect, useState } from 'react'
-import * as disco from '@epfml/discojs-web'
+import { tf, dataset, defaultTasks, Task, browser } from '@epfml/discojs-web'
 import { main } from '@/disco/main'
-import { getConfig, GPTConfigWithWandb } from '@epfml/gpt-tfjs'
+import { models } from '@epfml/discojs-web'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Separator } from '@/components/ui/separator'
 
-const task = disco.defaultTasks.wikitext.getTask()
+const { gpt } = models
+
+const task = defaultTasks.wikitext.getTask()
 const config = task.trainingInformation.modelConfig
 
 // TODO: source: TextSource should be loaded using some generic script using the task definition
 // a script to search for dataset files corresponding to a task is defined under experiment/data.ts (getDatasetSource)
 // this script should be used here as well (see TODO comment in that file)
-const datasetsFolder = path.join('../../experiment', 'datasets', 'wikitext-103')
-const source: disco.dataset.TextSource = {
-    train: [path.join(datasetsFolder, 'test.tokens')],
-    validation: [path.join(datasetsFolder, 'validation.tokens')],
+const getSource = (datasetName: string): dataset.TextSource => {
+    const datasetsFolder = path.join(
+        '../../experiment',
+        'datasets',
+        datasetName
+    )
+    const source: dataset.TextSource = {
+        train: [path.join(datasetsFolder, 'train.tokens')],
+        validation: undefined,
+    }
+    // wikitext has a validation file but tiny-shakespeare doesnt
+    // this is one of the reason why the todo above is relevant
+    if (datasetName === 'wikitext-103') {
+        source.validation = [path.join(datasetsFolder, 'validation.tokens')]
+    }
+
+    return source
 }
 
-const getDatasplit = async (task: disco.Task) => {
-    return await new disco.browser.dataset.loader.WebTextLoader(task).loadAll(
+const getDatasplit = async (task: Task, datasetName: string) => {
+    const source = getSource(datasetName)
+    return await new browser.dataset.loader.WebTextLoader(task).loadAll(
         source,
         config
     )
 }
 
-const getTokenizedSample = async (datasplit: disco.dataset.DataSplit) => {
-    const ds = datasplit.train.dataset as disco.dataset.TokenizedDataset
-    const iter = await ds.iterator() // .batch(config.batchSize)
-    const { value, done } =
-        (await iter.next()) as disco.dataset.TokenizedIterResult
-    return { value, done }
+const runDatasetBenchmark = async (datasplit: dataset.DataSplit) => {
+    const ds = datasplit.train.dataset as dataset.TokenizedDataset
+    const iter = await ds.iterator()
+    const iterations = 1000
+    const label = `Benchmark ${iterations} iterations`
+    const { blockSize, batchSize, vocabSize } = config
+    console.log(label, 'starts', { blockSize, batchSize, vocabSize })
+    console.time(label)
+    for (let i = 0; i < iterations; i++) {
+        const { value } = (await iter.next()) as dataset.TokenizedIterResult
+        const { xs, ys } = value
+        tf.dispose([xs, ys])
+    }
+    console.timeEnd(label)
 }
 
+const DATASET_NAMES = ['wikitext-103', 'tiny-shakespeare'] as const
+type DatasetName = (typeof DATASET_NAMES)[number]
+
 export default function Home() {
-    const [sample, setSample] =
-        useState<disco.dataset.BatchedTokenizedTensorSample>()
-    const [running, setRunning] = useState<boolean>(false)
-    const [config, setConfig] = useState<GPTConfigWithWandb>({})
+    const [datasetName, setDatasetName] = useState<DatasetName>('wikitext-103')
+    const [config, setConfig] = useState<models.GPTConfigWithWandb>()
     const [availableBackends, setAvailableBackends] = useState<string[]>([])
-    const [backendName, setBackendName] = useState<string>(() =>
-        disco.tf.getBackend()
-    )
+    const [backendName, setBackendName] = useState<string>('cpu')
 
     useEffect(() => {
-        setConfig(getConfig(task.trainingInformation.modelConfig))
-        setAvailableBackends(disco.tf.engine().backendNames())
+        setConfig(gpt.getConfig(task.trainingInformation.modelConfig))
+        setAvailableBackends(tf.engine().backendNames())
+        setBackend(tf.getBackend())
     }, [])
 
-    const getSample = async () => {
-        const datasplit = await getDatasplit(task)
-        const { value } = await getTokenizedSample(datasplit)
-        setSample(value)
+    const datasetBenchmark = async () => {
+        const datasplit = await getDatasplit(task, datasetName)
+        await runDatasetBenchmark(datasplit)
     }
 
     const startTraining = async () => {
         // FIXME: url in .env (or fetched from backend?)
-        const datasplit = await getDatasplit(task as disco.Task)
+        const datasplit = await getDatasplit(task as Task, datasetName)
         const url = new URL('', 'http://localhost:8000')
-        setRunning(true)
         await main(url, task, datasplit).catch(console.error)
-        setRunning(false)
     }
 
+    // util function to properly set the backend
+    // TODO: Move this to core as well?
     const setBackend = (backendName: string) => async () => {
-        await disco.tf.setBackend(backendName)
-        await disco.tf.ready()
+        await tf.setBackend(backendName)
+        await tf.ready()
 
-        const tfBackend = disco.tf.getBackend()
+        const tfBackend = tf.getBackend()
         if (tfBackend !== backendName) {
             throw new Error('backend not properly set, got: ' + tfBackend)
         }
@@ -75,63 +100,69 @@ export default function Home() {
         setBackendName(tfBackend)
     }
 
+    console.log(backendName, datasetName)
+
     return (
-        <main className="flex flex-col p-24 gap-8">
-            <div className="flex gap-8">
-                <div className="flex justify-between items-center gap-8 bg-slate-800 rounded py-4 px-8">
-                    <p>Backend availables: {availableBackends.join(', ')}</p>
-                    {availableBackends.map((backendName, i) => (
-                        <button
-                            key={`btn-${i}`}
-                            onClick={setBackend(backendName)}
-                            className="bg-slate-700 rounded px-4 py-2 capitalize"
-                        >
-                            {backendName}
-                        </button>
-                    ))}
-                    <p>Backend set to: {backendName}</p>
-                </div>
-                <div className="flex justify-between items-center gap-8 bg-slate-800 rounded py-4 px-8">
-                    <button
-                        onClick={getSample}
-                        className="bg-slate-700 rounded px-4 py-2"
-                    >
-                        Get sample
-                    </button>
-                    <div>
-                        <p>
-                            xs:{' '}
-                            {sample && (
-                                <b>
-                                    {JSON.stringify(sample.xs.shape, null, 4)}
-                                </b>
-                            )}
-                        </p>
-                        <p>
-                            ys:{' '}
-                            {sample && (
-                                <b>
-                                    {JSON.stringify(sample.ys.shape, null, 4)}
-                                </b>
-                            )}
-                        </p>
-                    </div>
-                </div>
-                <div className="flex justify-between items-center gap-8 bg-slate-800 rounded p-4">
-                    <button
-                        onClick={startTraining}
-                        className="bg-slate-700 rounded px-4 py-2"
-                    >
-                        Train
-                    </button>
-                    <div className="pr-4">
-                        Running?: <b>{running ? 'true' : 'false'}</b>
-                    </div>
-                </div>
-            </div>
+        <main className="flex p-24 gap-8">
             <pre className="bg-slate-800 rounded p-4 max-w-min">
                 {JSON.stringify(config, undefined, 4)}
             </pre>
+            <div className="flex flex-col gap-8">
+                <div className="flex justify-between items-center gap-4 bg-slate-800 rounded py-2 px-8 h-fit">
+                    Backend:
+                    <Tabs value={backendName} onValueChange={setBackend}>
+                        <TabsList className="gap-4">
+                            {availableBackends.map((backendName, i) => (
+                                <TabsTrigger
+                                    className="hover:!bg-slate-900"
+                                    value={backendName}
+                                    key={`btn-${i}`}
+                                >
+                                    {backendName}
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </Tabs>
+                </div>
+                <div className="flex justify-between items-center gap-4 bg-slate-800 rounded py-2 px-8 h-fit">
+                    Dataset:
+                    <Tabs
+                        value={datasetName}
+                        onValueChange={(v) => setDatasetName(v as DatasetName)}
+                    >
+                        <TabsList className="gap-2">
+                            <TabsTrigger
+                                value="wikitext-103"
+                                className="hover:!bg-slate-900"
+                            >
+                                wikitext-103
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="tiny-shakespeare"
+                                className="hover:!bg-slate-900"
+                            >
+                                tiny-shakespeare
+                            </TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                    <Separator orientation="vertical" />
+                    <button
+                        onClick={datasetBenchmark}
+                        className="bg-background rounded px-3 py-1.5 hover:bg-slate-900 text-sm font-medium"
+                    >
+                        benchmark
+                    </button>
+                </div>
+                <div className="flex justify-between items-center gap-4 bg-slate-800 rounded py-2 px-8 h-fit">
+                    Training:
+                    <button
+                        onClick={startTraining}
+                        className="bg-background rounded px-3 py-1.5 hover:bg-slate-900 text-sm font-medium"
+                    >
+                        run
+                    </button>
+                </div>
+            </div>
         </main>
     )
 }

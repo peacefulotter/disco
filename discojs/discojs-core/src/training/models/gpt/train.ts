@@ -95,7 +95,6 @@ export async function train(
         callbacks.onBatchBegin(iteration)
 
         // Get new batch of x and y
-        console.time('gpt-dataset')
         let next = await iterator.next()
         if (next.done) {
             callbacks.onEpochEnd(epoch)
@@ -108,7 +107,6 @@ export async function train(
             next = await iterator.next()
         }
         const { xs, ys } = next.value
-        console.timeEnd('gpt-dataset')
 
         // Calculates loss, computes gradients and applies them
         const loss = tf.tidy(() => {
@@ -131,7 +129,7 @@ export async function train(
             'train/perplexity': Math.exp(lossVal),
             'train/loss': lossVal,
             iter: iteration,
-            mem: tf.memory().numBytes,
+            'tf-mem': tf.memory().numBytes,
             dt_ms: Date.now() - time,
             time_s: (Date.now() - start) / 1000,
         }

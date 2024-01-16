@@ -1,8 +1,7 @@
-import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-import { GPTConfig } from '@/model'
+import { GPTConfig } from '../model'
 
 export type WandbConfig = GPTConfig & {
     platform: string
@@ -20,6 +19,14 @@ export type WandbSave = {
 }
 
 const exportWandb = async (save: any) => {
+    let fs
+    try {
+        fs = require('fs/promises')
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+
     const json = JSON.stringify(save, null, 4)
 
     const __filename = fileURLToPath(import.meta.url)

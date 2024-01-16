@@ -21,18 +21,26 @@ async function runUser(
 }
 
 async function main(): Promise<void> {
+    if (process.argv.length < 3)
+        throw new Error(
+            'Please provide the dataset name you would like to train on (wikitext-103 | tiny-shakespeare)'
+        )
+
+    const name = process.argv[2]
+
     const [server, serverUrl] = await startDisco()
 
     const tasks = await fetchTasks(serverUrl)
 
     // Choose your task to train
-    const task = tasks.get('wikitext-103')
+    // TODO: rename this task just to llm or gpt (?), because it would be the same task for many datasets
+    const task = tasks.get('wikitext-103') // no matter the dataset picked, the task is the same
 
     if (task === undefined) {
         throw new Error('task not found')
     }
 
-    const dataset = await loadData(task)
+    const dataset = await loadData(task, name)
 
     // Add more users to the list to simulate more clients
     await Promise.all([runUser(serverUrl, task, dataset)])

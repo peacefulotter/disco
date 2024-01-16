@@ -6,7 +6,8 @@
         "paths": {
             "@epfml/discojs-core": ["."],
             "@epfml/discojs-models/*": ["./src/training/models/*"]
-        }
+        },
+        "typeRoots": ["./node_modules/@types", "../discojs-core/types"]
     },
     "include": ["./src/**/*.ts"],
     "exclude": ["node_modules/**/*", "dist/**/*", "**/*.spec.ts"]

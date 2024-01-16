@@ -15,7 +15,18 @@ export const TOKENIZED_FILE_EXTENSION = 'tokens'
 // TODO: support for multiple files being tokenized together into a single file
 
 async function getFileStreams(datasetDir: string) {
-    const files = await readdir(datasetDir)
+    let files: string[]
+    try {
+        files = await readdir(datasetDir)
+    } catch (err) {
+        console.error(
+            'Could not find dataset directory:',
+            datasetDir,
+            'are you sure you downloaded the dataset?'
+        )
+        throw err
+    }
+
     const preprocessFiles = files.filter(
         (file) =>
             !file.endsWith('zip') && !file.endsWith(TOKENIZED_FILE_EXTENSION)
@@ -76,8 +87,8 @@ const preprocessStream = async (
     writeFileStream.end()
 }
 
-export default async function preprocess() {
-    const datasetDir = path.join(__dirname, 'datasets', 'wikitext-103')
+export default async function preprocess(name: string) {
+    const datasetDir = path.join(__dirname, 'datasets', name)
     console.log('Preprocessing step located at:', datasetDir)
     const streams = await getFileStreams(datasetDir)
 
@@ -90,5 +101,11 @@ export default async function preprocess() {
 }
 
 if (esMain(import.meta)) {
-    await preprocess()
+    if (process.argv.length < 3)
+        throw new Error(
+            'Please provide the dataset name you would like to preprocess (wikitext-103 | tiny-shakespeare)'
+        )
+
+    const name = process.argv[2]
+    await preprocess(name)
 }

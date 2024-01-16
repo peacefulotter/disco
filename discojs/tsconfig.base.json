@@ -20,7 +20,6 @@
         "resolveJsonModule": true,
         "isolatedModules": true,
         "incremental": true,
-        "checkJs": false,
-        "typeRoots": ["node_modules/@types", "discojs-core/types"]
+        "checkJs": false
     }
 }
