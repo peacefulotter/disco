@@ -8,7 +8,8 @@ import fs from 'fs'
 import path from 'path'
 import { describe, test, expect } from 'bun:test'
 import { encode, decode } from 'gpt-tokenizer/esm/model/text-davinci-003'
-import * as disco from '../..'
+import { tf, dataset, defaultTasks, Task, Disco } from '@epfml/discojs-core'
+import { WebTextLoader } from '.'
 
 /**
  * ================================================
@@ -27,12 +28,12 @@ const datasetsFolder = path.join(
 
 const trainFile = 'test'
 
-const source: disco.dataset.TextSource = {
+const source: dataset.TextSource = {
     train: [path.join(datasetsFolder, `${trainFile}.tokens`)],
     // validation: [path.join(datasetsFolder, 'validation.tokens')],
 }
 
-const task = disco.defaultTasks.wikitext.getTask()
+const task = defaultTasks.wikitext.getTask()
 const config = {
     ...task.trainingInformation.modelConfig,
     blockSize: 16,
@@ -43,17 +44,19 @@ const config = {
 const BENCHMARK_ITERATIONS = 1000
 const BENCHMARK_BLOCK_SIZES = [16, 32, 64, 128]
 
+const getDataset = async (config: any) => {
+    const loaded = await new WebTextLoader(task).loadAll(source, config)
+    const ds = loaded.train.dataset as dataset.TokenizedDataset
+    return ds
+}
+
 // config: gpt.GPTConfig
 const getIterator = async (config: any) => {
-    const loaded = await new disco.browser.dataset.loader.WebTextLoader(
-        task
-    ).loadAll(source, config)
-    const ds = loaded.train.dataset as disco.dataset.TokenizedDataset
+    const ds = await getDataset(config)
     const iter = await ds.iterator()
     return {
         next: async () => {
-            const { value } =
-                (await iter.next()) as disco.dataset.TokenizedIterResult
+            const { value } = (await iter.next()) as dataset.TokenizedIterResult
             return { xs: value.xs, ys: value.ys }
         },
     }
@@ -65,8 +68,8 @@ const getIteratorArray = async (config: any) => {
         next: async () => {
             const { xs, ys } = await iter.next()
             const x = await xs.array()
-            const y = await (ys.argMax(2) as disco.tf.Tensor2D).array() // get indices of max values along last axis
-            disco.tf.dispose([xs, ys])
+            const y = await (ys.argMax(2) as tf.Tensor2D).array() // get indices of max values along last axis
+            tf.dispose([xs, ys])
             return { x, y }
         },
     }
@@ -112,7 +115,7 @@ describe('web text loader', () => {
             config.blockSize,
             config.vocabSize,
         ])
-        disco.tf.dispose([xs, ys])
+        tf.dispose([xs, ys])
     })
 
     test('x without [0] equals y without [-1]', async () => {
@@ -150,13 +153,13 @@ describe('web text loader', () => {
         expect(sample).toEqual(tokens)
     })
 
-    test.only(`benchmark ${BENCHMARK_ITERATIONS} iterations for block sizes: ${BENCHMARK_BLOCK_SIZES}`, async () => {
+    test(`benchmark ${BENCHMARK_ITERATIONS} iterations for block sizes: ${BENCHMARK_BLOCK_SIZES}`, async () => {
         for (const blockSize of BENCHMARK_BLOCK_SIZES) {
             const iter = await getIterator({ ...config, blockSize })
             const benchmarkStart = Date.now()
             for (let i = 0; i < BENCHMARK_ITERATIONS; i++) {
                 const { xs, ys } = await iter.next()
-                disco.tf.dispose([xs, ys])
+                tf.dispose([xs, ys])
             }
             const benchmarkEnd = Date.now()
             const ms = benchmarkEnd - benchmarkStart
@@ -171,4 +174,22 @@ describe('web text loader', () => {
             )
         }
     }, 256_000)
+
+    test.only(`one iteration on gpt with block size ${config.blockSize} and batch size ${config.batchSize}`, async () => {
+        const t: Task = {
+            ...task,
+            trainingInformation: {
+                ...task.trainingInformation,
+                maxIterations: 10,
+            },
+        }
+        const ds = await getDataset(config)
+        const data = await dataset.TextData.init(ds, t)
+        const url = new URL('', 'http://localhost:8000')
+        const d = new Disco(t, { url })
+        // Stop training and disconnect from the remote server
+        const trainer = await (d as any).trainer
+        trainer.fit({ train: data })
+        await d.close()
+    })
 })

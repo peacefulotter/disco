@@ -217,6 +217,8 @@ export type TrainingInformation<ModelConfig = unknown> = {
     /**
      * ==== FOR LLMs ====
      */
+    // datasetBatchSize: actual batch size used by the core text loader to construct a batch
+    datasetBatchSize?: number
     // vocabSize: vocabulary size of the tokenizer
     vocabSize?: number
     // tokenizer: tokenizer to be used for tokenizing the text

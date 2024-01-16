@@ -1,7 +1,14 @@
 import { Set } from 'immutable'
 import axios from 'axios'
 
-import { tf, Task, TrainingInformant, serialization, WeightsContainer, training } from '..'
+import {
+    tf,
+    Task,
+    TrainingInformant,
+    serialization,
+    WeightsContainer,
+    training,
+} from '..'
 import { NodeID } from './types'
 import { EventConnection } from './event_connection'
 import { Aggregator } from '../aggregator'
@@ -64,7 +71,7 @@ export abstract class Base {
         const response = await axios.get(url.href)
 
         const m = await serialization.model.decode(response.data)
-        // FIXME: not working for other custom models
+        // TODO: not working for other custom models
         return new TFJSModel(this.task, m)
     }
 

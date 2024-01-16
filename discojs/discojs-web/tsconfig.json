@@ -5,7 +5,8 @@
         "rootDirs": [".", "../discojs-core"],
         "outDir": "./dist",
         "paths": {
-            "@epfml/discojs-core": ["../discojs-core/src/"]
+            "@epfml/discojs-core": ["../discojs-core/src/index.browser"],
+            "@epfml/discojs-core/*": ["../discojs-core/src/*"]
         },
         "typeRoots": ["./node_modules/@types", "../discojs-core/types"]
     },

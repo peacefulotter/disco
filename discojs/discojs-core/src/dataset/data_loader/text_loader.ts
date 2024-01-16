@@ -9,22 +9,12 @@ export interface TextConfig extends DataConfig {
     batchSize?: number
 }
 
-type TokenizedSample = {
-    xs: number[]
-    ys: number[]
-}
-
-export type TokenizedTensorSample = {
-    xs: tf.Tensor1D // tokens of size (blockSize)
-    ys: tf.Tensor2D // one hot encoded vector of size (blockSize, vocabSize)
-}
-
 export type BatchedTokenizedTensorSample = {
     xs: tf.Tensor2D // tokens of size (B, blockSize)
     ys: tf.Tensor3D // one hot encoded vector of size (B, blockSize, vocabSize)
 }
 
-export type TokenizedDataset = Dataset<TokenizedTensorSample>
+export type TokenizedDataset = Dataset<BatchedTokenizedTensorSample>
 
 export type TokenizedIterResult = IteratorResult<
     BatchedTokenizedTensorSample,
@@ -72,10 +62,14 @@ export abstract class TextLoader extends DataLoader<
     }
 
     // TODO: remove this when refactor TASK is done
-    // and finally requires batchSize, blockSize and vocabSize
+    // and requires batchSize, blockSize and vocabSize
     // to be required for any text task!
     getBatchSize(config: TextConfig): number {
-        return config.batchSize || this.task.trainingInformation.batchSize
+        return (
+            config.batchSize ||
+            this.task.trainingInformation.datasetBatchSize ||
+            TextLoader.DEFAULT_CONFIG.batchSize
+        )
     }
 
     // TODO: remove this when refactor TASK is done
@@ -142,14 +136,14 @@ export abstract class TextLoader extends DataLoader<
 
         // cast as any because tf.data.generator does not take a type AsyncGenerator (but it works)
         return tf.data.generator(generator as any)
-        // .map((v: any & TokenizedSample) => ({
-        //     xs: tf.tensor1d(v.xs, 'int32'),
-        //     ys: tf.oneHot(v.ys, vocabSize),
-        // })) as TokenizedDataset
     }
 
     abstract load(source: string, config: TextConfig): Promise<TokenizedDataset>
 
+    // TODO: not a fan of the TextConfig, it becomes tricky to know what parameters are set where
+    // because of they are set in the task AND/OR in the config
+    // when Task objects are refactor => try to remove TextConfig entirely
+    // or at least don't overlap keys with the task trainingInfo keys
     abstract loadAll(
         source: TextSource,
         config?: Partial<TextConfig>

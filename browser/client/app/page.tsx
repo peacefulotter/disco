@@ -26,7 +26,7 @@ const getDatasplit = async (task: disco.Task) => {
 
 const getTokenizedSample = async (datasplit: disco.dataset.DataSplit) => {
     const ds = datasplit.train.dataset as disco.dataset.TokenizedDataset
-    const iter = await ds.batch(config.batchSize).iterator()
+    const iter = await ds.iterator() // .batch(config.batchSize)
     const { value, done } =
         (await iter.next()) as disco.dataset.TokenizedIterResult
     return { value, done }

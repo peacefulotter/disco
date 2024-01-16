@@ -1,7 +1,6 @@
 import { randomUUID } from 'crypto'
 import { dataset } from '../..'
-import { Cache, Deferred } from './cache'
-import { CacheData } from './worker'
+import { Deferred } from './cache'
 
 type MessageData = {
     value: {
@@ -16,7 +15,7 @@ export class WebTextLoader extends dataset.loader.TextLoader {
     static readonly CACHE_SIZE: number = 10
 
     // ========================= WORKER + CACHE =========================
-    // TODO: make this faster than just having a ws instance in the loader
+    // TODO:? make this faster than just having a ws instance in the loader
     // getWorker = (file: string, config: dataset.TextConfig) => {
     //     const workerURL = new URL('worker.ts', import.meta.url).href
     //     const worker = new Worker(workerURL, {
@@ -72,7 +71,7 @@ export class WebTextLoader extends dataset.loader.TextLoader {
         // onTrainEnd = () => ws.close()
 
         // ========================= WORKER + CACHE =========================
-        // TODO: make this faster than just having a ws instance in the loader
+        // TODO:? make this faster than just having a ws instance in the loader
         // const worker = await this.getWorker(file, config)
         // const cache = await Cache.init<CacheData>(
         //     WebTextLoader.CACHE_SIZE,

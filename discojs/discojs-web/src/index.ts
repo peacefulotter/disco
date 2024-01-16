@@ -1,2 +1,2 @@
-export * from '@epfml/discojs-core/src/index.browser'
+export * from '@epfml/discojs-core'
 export * as browser from './imports'

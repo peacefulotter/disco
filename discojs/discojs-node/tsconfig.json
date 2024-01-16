@@ -6,6 +6,7 @@
         "outDir": "./dist",
         "paths": {
             "@epfml/discojs-core": ["../discojs-core/src/index.node"],
+            "@epfml/discojs-core/*": ["../discojs-core/src/*"],
             "@epfml/gpt-tfjs": ["../gpt-tfjs"]
         },
         "typeRoots": ["./node_modules/@types", "../discojs-core/types"]

@@ -44,8 +44,7 @@ const getIterator = async (config: any) => {
         config
     )
     const ds = loaded.train.dataset as dataset.TokenizedDataset
-    // const iter = await ds.batch(config.batchSize).iterator()
-    const iter = await ds.iterator()
+    const iter = await ds.iterator() // .batch(config.batchSize)
     return {
         next: async () => {
             const { value } = (await iter.next()) as dataset.TokenizedIterResult

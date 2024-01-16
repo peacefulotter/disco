@@ -42,7 +42,11 @@ export const wikitext: TaskProvider<gpt.GPTConfig> = {
                 validationSplit: 0.2, // FIXME: is this used somewhere? because train, eval and test are already split in dataset
                 maxIterations: modelConfig.maxIter,
                 epochs: modelConfig.epochs ?? 1,
-                batchSize: modelConfig.batchSize,
+                // constructing a batch is taken care automatically in the dataset to make things faster
+                // so we fake a batch size of 0
+                batchSize: 0,
+                // this is the real batch size used by the core text loader
+                datasetBatchSize: modelConfig.batchSize,
                 learningRate: modelConfig.lr,
                 modelCompileData: {
                     optimizer: 'sgd',
