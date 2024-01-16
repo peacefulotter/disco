@@ -22,10 +22,11 @@ bun install
 # install dependencies in experiment and download + preprocess dataset
 cd ../experiment
 bun install
-# FIXME: npm i -S ../discojs/discojs-node/
-./install-wikitext.sh
-bun ./preprocess.ts
-bun run dev
+# Feel free to install one dataset or both, you can choose which one to preprocess / train on
+./install-wikitext.sh # Installs wikitext-103 dataset
+./install-shakespeare.sh # Installs tiny-shakespeare dataset
+bun preprocess.ts [wikitext-103 | tiny-shakespeare]
+bun main.ts [wikitext-103 | tiny-shakespeare]
 
 # -- For web version only:
 # install dependencies in discojs-web
@@ -57,7 +58,7 @@ The following will run tests for the web and node text loaders. You need to foll
 # the websocket server needs to be running
 cd browser/server/
 bun --bun socket.ts
-# In a new terminal tab, run the tests
+# In a new terminal tab, run all tests related to the text loader
 cd ../../discojs
 bun --bun test text_loader.spec.ts # will run tests with a filename matching text_loader.spec.ts
 ```
@@ -67,6 +68,7 @@ bun --bun test text_loader.spec.ts # will run tests with a filename matching tex
 1. Benchmark all
 2. Try new dataset
 3. Try new model
+4. Investigate if node v18 is required everywhere now
 
 # Future work
 
