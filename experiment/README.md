@@ -69,7 +69,7 @@ google-chrome --enable-unsafe-webgpu --enable-features=Vulkan,UseSkiaRenderer &
 
 To run tests, you first need to follow the "Required" section of the Installation instructions.
 
-#### Testing on Node
+### Testing on Node
 
 ```sh
 # Follow the instructions "# Running on node" before proceeding
@@ -92,7 +92,7 @@ cd discojs/discojs-web/
 bun --bun test text_loader.spec.ts
 ```
 
-#### Testing both at once
+### Testing both at once
 
 ```sh
 # Follow the respective installation instructions first
