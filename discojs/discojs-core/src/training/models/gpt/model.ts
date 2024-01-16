@@ -1,4 +1,4 @@
-import { dataset, tf, training } from '@epfml/discojs-core'
+import { dataset, tf, training } from '../../..'
 import { train } from './train'
 
 const Range = (config: any) => new Range_(config)
@@ -687,16 +687,4 @@ type GPTConfig = {
     modelType: ModelType
 }
 
-export {
-    GELU,
-    CausalSelfAttention,
-    CausalSelfAttentionMixed,
-    MLP,
-    Block,
-    GPT,
-    GPTModel,
-    GPTLMHeadModel,
-    type GPTConfig,
-    generate,
-    generateSync,
-}
+export { GPT, GPTModel, GPTLMHeadModel, type GPTConfig, generate, generateSync }

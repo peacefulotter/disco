@@ -1,14 +1,13 @@
 {
     "extends": "../tsconfig.base.json",
     "compilerOptions": {
-        "rootDir": "..",
-        "rootDirs": ["./src", "../gpt-tfjs"],
+        "rootDir": "./src",
         "outDir": "./dist",
         "paths": {
             "@epfml/discojs-core": ["."],
-            "@epfml/gpt-tfjs": ["../gpt-tfjs"]
+            "@epfml/discojs-models/*": ["./src/training/models/*"]
         }
     },
-    "include": ["./src/**/*.ts", "../gpt-tfjs/**/*.ts", "../../browser/server/wandb-node.ts"],
+    "include": ["./src/**/*.ts"],
     "exclude": ["node_modules/**/*", "dist/**/*", "**/*.spec.ts"]
 }

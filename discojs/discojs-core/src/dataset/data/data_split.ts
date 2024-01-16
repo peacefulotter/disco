@@ -5,8 +5,8 @@ import { Dataset } from '../dataset'
  * Train-validation split of Disco data.
  */
 export interface DataSplit {
-  train: Data
-  validation?: Data
+    train: Data
+    validation?: Data
 }
 
 /**
@@ -15,8 +15,11 @@ export interface DataSplit {
  * @param data The data split
  * @returns A tuple object containing the training and validation datasets
  */
-export function extract (data: DataSplit): {training: Dataset, validation: Dataset} {
-  const training = data.train.preprocess().batch().dataset
-  const validation = data.validation?.preprocess().batch().dataset ?? training
-  return { training, validation }
+export function extract(data: DataSplit): {
+    training: Dataset
+    validation: Dataset
+} {
+    const training = data.train.preprocess().batch().dataset
+    const validation = data.validation?.preprocess().batch().dataset ?? training
+    return { training, validation }
 }

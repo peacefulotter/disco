@@ -4,8 +4,7 @@
         "rootDirs": [
             ".",
             "../../discojs/discojs-core",
-            "../../discojs/discojs-web",
-            "../../discojs/gpt-tfjs"
+            "../../discojs/discojs-web"
         ],
         "lib": ["dom", "dom.iterable", "ESNext"],
         "module": "esnext",
@@ -39,8 +38,7 @@
         "paths": {
             "@/*": ["./*"],
             "@epfml/discojs-core": ["../../discojs/discojs-core/src/"],
-            "@epfml/discojs-web": ["../../discojs/discojs-web/src/"],
-            "@epfml/gpt-tfjs": ["../../discojs/gpt-tfjs/"]
+            "@epfml/discojs-web": ["../../discojs/discojs-web/src/"]
         },
         "typeRoots": ["node_modules/@types", "../../discojs/discojs-core/types"]
     },
@@ -50,8 +48,7 @@
         "**/*.tsx",
         ".next/types/**/*.ts",
         "../../discojs/discojs-core/src/**/*.ts",
-        "../../discojs/discojs-web/src/**/*.ts",
-        "../../discojs/gpt-tfjs/**/*.ts"
+        "../../discojs/discojs-web/src/**/*.ts"
     ],
     "exclude": ["./node_modules/**/*", "./dist/**/*"]
 }

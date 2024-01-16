@@ -1,6 +1,6 @@
-import { tf, training, Task, TaskProvider, TrainingSchemes } from '..'
-import { model as gpt } from '@epfml/gpt-tfjs'
-import { TFJSModel } from '../training/model'
+import { tf, Task, TaskProvider, TrainingSchemes } from '..'
+import * as gpt from '../training/models/gpt'
+import { TFJSModel, Model } from '../training/model'
 
 const modelConfig: gpt.GPTConfig = {
     modelType: 'gpt-nano',
@@ -43,7 +43,7 @@ export const wikitext: TaskProvider<gpt.GPTConfig> = {
                 maxIterations: modelConfig.maxIter,
                 epochs: modelConfig.epochs ?? 1,
                 // constructing a batch is taken care automatically in the dataset to make things faster
-                // so we fake a batch size of 0
+                // so we fake a batch size of 1
                 batchSize: 0,
                 // this is the real batch size used by the core text loader
                 datasetBatchSize: modelConfig.batchSize,
@@ -78,7 +78,7 @@ export const wikitext: TaskProvider<gpt.GPTConfig> = {
         }
     },
 
-    async getModel(): Promise<training.model.Model> {
+    async getModel(): Promise<Model> {
         console.log('GPT Config:', modelConfig)
         // const model = new gpt.GPTLMHeadModel(config)
         const model = gpt.GPT(modelConfig)

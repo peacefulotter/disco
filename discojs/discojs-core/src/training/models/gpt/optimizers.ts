@@ -1,4 +1,4 @@
-import { tf } from '@epfml/discojs-core'
+import { tf } from '../../..'
 
 type Tensor = tf.Tensor
 

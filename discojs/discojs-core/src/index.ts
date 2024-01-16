@@ -3,6 +3,7 @@ export * as dataset from './dataset'
 export * as serialization from './serialization'
 export * as training from './training'
 export * as privacy from './privacy'
+export * as models from './training/models'
 export { GraphInformant, TrainingInformant, informant } from './informant'
 
 export * as client from './client'

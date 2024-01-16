@@ -11,7 +11,6 @@
         "lib": ["ESNext"],
         "module": "esnext",
         "target": "esnext",
-        "baseUrl": ".",
         "esModuleInterop": true,
         "moduleResolution": "bundler",
         "moduleDetection": "force",
@@ -32,15 +31,11 @@
         "isolatedModules": true,
         "incremental": true,
         "checkJs": false,
-        "types": [
-            "bun-types" // add Bun global
-        ],
         "paths": {
             "@/*": ["./*"],
-            // "@epfml/discojs-node": ["../discojs/discojs-node/src/"],
-            "@epfml/discojs-core": ["../discojs/discojs-core/src/index.node"],
-            "#/gpt-tfjs": ["../discojs/gpt-tfjs"],
-            "@epfml/disco-server": ["../server/src"]
+            "@epfml/disco-server": ["../server/src"],
+            "@epfml/discojs-node": ["../discojs/discojs-node/src/"],
+            "#/gpt-tfjs": ["../discojs/gpt-tfjs"]
         }
     },
     "ts-node": {
@@ -50,10 +45,11 @@
     "include": [
         "**/*.ts",
         "decs.d.ts",
-        // "../discojs/discojs-node/**/*.ts",
+        "../discojs/discojs-node/**/*.ts",
         "../discojs/discojs-core/**/*.ts",
         "../discojs/gpt-tfjs/**/*.ts",
-        "../server/**/*.ts"
-, "../browser/server/wandb-node.ts"    ],
+        "../server/**/*.ts",
+        "../browser/server/wandb-node.ts"
+    ],
     "exclude": ["./node_modules/**/*", "./dist/**/*"]
 }

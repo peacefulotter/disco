@@ -1,4 +1,4 @@
-import { dataset, Disco, fetchTasks, Task, tf } from '@epfml/discojs-node/src/'
+import { dataset, Disco, fetchTasks, Task, tf } from '@epfml/discojs-node'
 
 import { startDisco } from '@epfml/disco-server'
 import { loadData } from './data'

@@ -1,4 +1,4 @@
-import { tf, dataset } from '@epfml/discojs-core'
+import { tf, dataset } from '../../..'
 import { GPTConfig } from './model'
 
 export default async function evaluate(

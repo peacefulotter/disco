@@ -1,6 +1,6 @@
-import { tf } from '@epfml/discojs-core'
+import { tf } from '../../..'
 
-function convertMinGPTConfig(config: any) {
+export function convertMinGPTConfig(config: any) {
     const mapping = {
         n_embd: 'nEmbd',
         n_head: 'nHead',
@@ -23,7 +23,7 @@ function convertMinGPTConfig(config: any) {
     return newConfig
 }
 
-function convertMinGPTWeights(weights: any) {
+export function convertMinGPTWeights(weights: any) {
     const newWeights: any = {}
     for (const wn in weights) {
         const w = weights[wn]
@@ -46,5 +46,3 @@ function convertMinGPTWeights(weights: any) {
     }
     return newWeights
 }
-
-export { convertMinGPTConfig, convertMinGPTWeights }

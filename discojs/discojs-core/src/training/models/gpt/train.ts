@@ -1,4 +1,4 @@
-import { dataset, tf, training } from '@epfml/discojs-core'
+import { dataset, tf, training } from '../../..'
 import { AdamW, clipByGlobalNormObj } from './optimizers'
 import { Wandb, WandbConfig } from './wandb'
 import { GPTConfig } from './model'
@@ -90,8 +90,12 @@ export async function train(
     let time = start
 
     while (true) {
-        // Get new batch of x and y
+        console.time('gpt-iter')
+
         callbacks.onBatchBegin(iteration)
+
+        // Get new batch of x and y
+        console.time('gpt-dataset')
         let next = await iterator.next()
         if (next.done) {
             callbacks.onEpochEnd(epoch)
@@ -104,6 +108,7 @@ export async function train(
             next = await iterator.next()
         }
         const { xs, ys } = next.value
+        console.timeEnd('gpt-dataset')
 
         // Calculates loss, computes gradients and applies them
         const loss = tf.tidy(() => {
@@ -142,12 +147,11 @@ export async function train(
         }
 
         wandb.log(payload)
-        if (iteration % 100 === 0) {
-            console.log(iteration, Date.now() - time)
-        }
         time = Date.now()
 
         tf.dispose([loss, xs, ys])
+
+        console.timeEnd('gpt-iter')
 
         // Check if we should stop
         iteration++
