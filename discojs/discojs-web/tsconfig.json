@@ -2,13 +2,8 @@
     "extends": "../tsconfig.base.json",
     "compilerOptions": {
         "rootDir": "..",
-        "rootDirs": [".", "../discojs-core"],
         "outDir": "./dist",
-        "paths": {
-            "@epfml/discojs-core": ["../discojs-core/src/index.browser"],
-            "@epfml/discojs-core/*": ["../discojs-core/src/*"]
-        },
-        "typeRoots": ["./node_modules/@types", "../discojs-core/types"]
+        "typeRoots": ["./node_modules/@types", "./src/core/types"]
     },
     "include": ["src/**/*.ts", "../discojs-core/src/**/*.ts"],
     "exclude": ["./node_modules/**/*", "./dist/**/*"]

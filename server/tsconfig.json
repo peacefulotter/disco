@@ -24,9 +24,7 @@
         "isolatedModules": true,
         "incremental": true,
         "checkJs": false,
-        // "typeRoots": ["node_modules/@types", "discojs-core/types"],
         "paths": {
-            "@/*": ["./src/*"],
             "@epfml/discojs-node": ["../discojs/discojs-node/src/"]
         }
     },

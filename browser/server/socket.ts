@@ -24,7 +24,7 @@ const database: Record<string, WebsocketStatus> = {}
 // what about custom tasks though?
 const task = defaultTasks.wikitext.getTask()
 
-// The websocket server only serves the dataset, not need for any GPU backend
+// The websocket server only serves the dataset, no need for any GPU backend
 const done = await tf.setBackend('cpu')
 console.log(
     'Backend set?',

@@ -1,13 +1,7 @@
 {
     "compilerOptions": {
         "rootDir": "..",
-        "rootDirs": [
-            ".",
-            // "../discojs/discojs-node",
-            "../discojs/discojs-core",
-            "../discojs/gpt-tfjs",
-            "../server"
-        ],
+        "rootDirs": [".", "../discojs/discojs-node", "../server"],
         "lib": ["ESNext"],
         "module": "esnext",
         "target": "esnext",
@@ -34,22 +28,14 @@
         "paths": {
             "@/*": ["./*"],
             "@epfml/disco-server": ["../server/src"],
-            "@epfml/discojs-node": ["../discojs/discojs-node/src/"],
-            "#/gpt-tfjs": ["../discojs/gpt-tfjs"]
+            "@epfml/discojs-node": ["../discojs/discojs-node/src/"]
         }
-    },
-    "ts-node": {
-        "esm": true,
-        "experimentalSpecifierResolution": "node"
     },
     "include": [
         "**/*.ts",
         "decs.d.ts",
         "../discojs/discojs-node/**/*.ts",
-        "../discojs/discojs-core/**/*.ts",
-        "../discojs/gpt-tfjs/**/*.ts",
-        "../server/**/*.ts",
-        "../browser/server/wandb-node.ts"
+        "../server/**/*.ts"
     ],
     "exclude": ["./node_modules/**/*", "./dist/**/*"]
 }
