@@ -77,7 +77,7 @@ cd discojs/discojs-node/
 bun --bun test text-loader.spec.ts
 ```
 
-### Testing on a simulated browser
+### Testing on a "simulated" browser
 
 ```sh
 # Since the following will test the web version,
@@ -92,13 +92,58 @@ cd discojs/discojs-web/
 bun --bun test text_loader.spec.ts
 ```
 
-### Testing both at once
+# Benchmarks
 
-```sh
-# Follow the respective installation instructions first
-cd discojs/
-bun --bun test text_loader.spec.ts # bun will find the matching filenames under discojs-node and discojs-web
+## Text Loader
+
+Benchmarking of the text loader is done via iterating 1000 times over the dataset and taking the average time is ms. The vocabulary size is set to 50257. We vary the batch and block sizes and report the results here.
+Tests run on an AMD Ryzen 6 7600 CPU.
+
+### Node
+
+```py
+# (batch, block) = time / iter
+- (4,  64)  = 1.481 ms
+- (4,  128) = 2.564 ms
+- (4,  256) = 2.213 ms
+- (4,  512) = 3.284 ms
+- (16, 64)  = 1.912 ms
+- (16, 128) = 3.323 ms
+- (16, 256) = 6.499 ms
+- (16, 512) = 12.131 ms
+- (32, 64)  = 3.299 ms
+- (32, 128) = 6.579 ms
+- (32, 256) = 12.325 ms
+- (32, 512) = 23.752 ms
 ```
+
+### Web (simulated)
+
+```py
+# (batch, block) = time / iter
+- (4,  64)  = 1.617 ms
+- (4,  128) = 2.725 ms
+- (4,  256) = 2.162 ms
+- (4,  512) = 3.603 ms
+- (16, 64)  = 2.120 ms
+- (16, 128) = 3.751 ms
+- (16, 256) = 6.796 ms
+- (16, 512) = 12.837 ms
+- (32, 64)  = 3.598 ms
+- (32, 128) = 6.883 ms
+- (32, 256) = 12.718 ms
+- (32, 512) = 25.475 ms
+```
+
+### Web (actual browser)
+
+## Training on GPT
+
+TODO: put wandb url
+
+### Node
+
+### Web (actual browser)
 
 # TODO
 

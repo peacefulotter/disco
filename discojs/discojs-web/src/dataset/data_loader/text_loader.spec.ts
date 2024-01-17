@@ -8,7 +8,7 @@ import fs from 'fs'
 import path from 'path'
 import { describe, test, expect } from 'bun:test'
 import { encode, decode } from 'gpt-tokenizer/esm/model/text-davinci-003'
-import { tf, dataset, defaultTasks, Task, Disco } from '@epfml/discojs-core'
+import { tf, dataset, defaultTasks, Task, Disco } from '../..'
 import { WebTextLoader } from '.'
 
 /**
@@ -34,7 +34,7 @@ const source: dataset.TextSource = {
 }
 
 const task = defaultTasks.wikitext.getTask()
-const config = {
+const config: Required<Omit<dataset.TextConfig, keyof dataset.DataConfig>> = {
     ...task.trainingInformation.modelConfig,
     blockSize: 16,
     batchSize: 4,
@@ -42,16 +42,17 @@ const config = {
 }
 
 const BENCHMARK_ITERATIONS = 1000
-const BENCHMARK_BLOCK_SIZES = [16, 32, 64, 128]
+const BENCHMARK_BATCH_SIZES = [4, 16, 32]
+const BENCHMARK_BLOCK_SIZES = [64, 128, 256, 512]
 
-const getDataset = async (config: any) => {
+const getDataset = async (config: Partial<dataset.TextConfig>) => {
     const loaded = await new WebTextLoader(task).loadAll(source, config)
     const ds = loaded.train.dataset as dataset.TokenizedDataset
     return ds
 }
 
 // config: gpt.GPTConfig
-const getIterator = async (config: any) => {
+const getIterator = async (config: Partial<dataset.TextConfig>) => {
     const ds = await getDataset(config)
     const iter = await ds.iterator()
     return {
@@ -104,17 +105,26 @@ const getRawTokenizedSample = async (
     return tokens
 }
 
+const correctShapeTest = (
+    xs: tf.Tensor2D,
+    ys: tf.Tensor3D,
+    config: Required<Omit<dataset.TextConfig, keyof dataset.DataConfig>>
+) => {
+    expect(xs.shape).toEqual([config.batchSize, config.blockSize])
+    expect(ys.shape).toEqual([
+        config.batchSize,
+        config.blockSize,
+        config.vocabSize,
+    ])
+}
+
 describe('web text loader', () => {
     test('loads a batched sample', async () => {
         const iter = await getIterator(config)
         const { xs, ys } = await iter.next()
 
-        expect(xs.shape).toEqual([config.batchSize, config.blockSize])
-        expect(ys.shape).toEqual([
-            config.batchSize,
-            config.blockSize,
-            config.vocabSize,
-        ])
+        correctShapeTest(xs, ys, config)
+
         tf.dispose([xs, ys])
     })
 
@@ -123,10 +133,10 @@ describe('web text loader', () => {
         const iter = await getIteratorArray(config)
         for (let i = 0; i < TEST_SIZE; i++) {
             const { x, y } = await iter.next()
-            for (let i = 0; i < config.batchSize; i++) {
+            for (let j = 0; j < config.batchSize; j++) {
                 // console.log('x=', decode(x_arr[i]).trim())
                 // console.log('y=', decode(y_arr[i]).trim())
-                expect(x[i].slice(1)).toEqual(y[i].slice(0, -1))
+                expect(x[j].slice(1)).toEqual(y[j].slice(0, -1))
             }
         }
     })
@@ -153,29 +163,35 @@ describe('web text loader', () => {
         expect(sample).toEqual(tokens)
     })
 
-    test(`benchmark ${BENCHMARK_ITERATIONS} iterations for block sizes: ${BENCHMARK_BLOCK_SIZES}`, async () => {
-        for (const blockSize of BENCHMARK_BLOCK_SIZES) {
-            const iter = await getIterator({ ...config, blockSize })
-            const benchmarkStart = Date.now()
-            for (let i = 0; i < BENCHMARK_ITERATIONS; i++) {
-                const { xs, ys } = await iter.next()
-                tf.dispose([xs, ys])
+    test(`benchmark ${BENCHMARK_ITERATIONS} iterations for batch sizes: ${BENCHMARK_BATCH_SIZES} and block sizes: ${BENCHMARK_BLOCK_SIZES}`, async () => {
+        for (const batchSize of BENCHMARK_BATCH_SIZES) {
+            for (const blockSize of BENCHMARK_BLOCK_SIZES) {
+                const c = {
+                    ...config,
+                    batchSize,
+                    blockSize,
+                }
+                const iter = await getIterator(c)
+                const benchmarkStart = Date.now()
+                for (let i = 0; i < BENCHMARK_ITERATIONS; i++) {
+                    const { xs, ys } = await iter.next()
+                    if (i === 0) correctShapeTest(xs, ys, c)
+                    tf.dispose([xs, ys])
+                }
+                const benchmarkEnd = Date.now()
+                const ms = benchmarkEnd - benchmarkStart
+                console.log(
+                    `[batchSize=${c.batchSize}, blockSize=${
+                        c.blockSize
+                    }] Time per iteration: ${(
+                        ms / BENCHMARK_ITERATIONS
+                    ).toFixed(3)}ms`
+                )
             }
-            const benchmarkEnd = Date.now()
-            const ms = benchmarkEnd - benchmarkStart
-            console.log(
-                `[batchSize=${
-                    config.batchSize
-                }, blockSize=${blockSize}] Time taken: ${
-                    ms / 1000
-                }s, time per iteration: ${(ms / BENCHMARK_ITERATIONS).toFixed(
-                    3
-                )}ms`
-            )
         }
     }, 256_000)
 
-    test.only(`one iteration on gpt with block size ${config.blockSize} and batch size ${config.batchSize}`, async () => {
+    test.skip(`one iteration on gpt with block size ${config.blockSize} and batch size ${config.batchSize}`, async () => {
         const t: Task = {
             ...task,
             trainingInformation: {
