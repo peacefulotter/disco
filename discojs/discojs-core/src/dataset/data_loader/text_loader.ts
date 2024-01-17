@@ -57,7 +57,7 @@ export abstract class TextLoader extends DataLoader<
     static DEFAULT_CONFIG: Required<Omit<TextConfig, keyof DataConfig>> &
         DataConfig = {
         blockSize: 128,
-        vocabSize: 50257,
+        vocabSize: 50258,
         batchSize: 4,
     }
 
@@ -126,11 +126,11 @@ export abstract class TextLoader extends DataLoader<
 
                 const x = xs.toTensor()
                 const y = ys.toTensor()
-                const res = {
+                yield {
                     xs: x as tf.Tensor2D,
                     ys: y as tf.Tensor3D,
                 }
-                yield res
+                tf.dispose([x, y])
             }
         }
 

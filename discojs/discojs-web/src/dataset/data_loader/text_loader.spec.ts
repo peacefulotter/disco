@@ -38,7 +38,7 @@ const config: Required<Omit<dataset.TextConfig, keyof dataset.DataConfig>> = {
     ...task.trainingInformation.modelConfig,
     blockSize: 16,
     batchSize: 4,
-    vocabSize: 50257,
+    vocabSize: 50258,
 }
 
 const BENCHMARK_ITERATIONS = 1000
@@ -70,7 +70,6 @@ const getIteratorArray = async (config: any) => {
             const { xs, ys } = await iter.next()
             const x = await xs.array()
             const y = await (ys.argMax(2) as tf.Tensor2D).array() // get indices of max values along last axis
-            tf.dispose([xs, ys])
             return { x, y }
         },
     }
@@ -176,7 +175,6 @@ describe('web text loader', () => {
                 for (let i = 0; i < BENCHMARK_ITERATIONS; i++) {
                     const { xs, ys } = await iter.next()
                     if (i === 0) correctShapeTest(xs, ys, c)
-                    tf.dispose([xs, ys])
                 }
                 const benchmarkEnd = Date.now()
                 const ms = benchmarkEnd - benchmarkStart

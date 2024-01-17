@@ -13,8 +13,7 @@ const exportWandb = async (save: any) => {
         path.dirname(__filename),
         '..',
         '..',
-        'discojs',
-        'gpt-tfjs',
+        'experiment',
         'wandb'
     )
     await fs.mkdir(dir, { recursive: true }).catch(console.error)
@@ -63,6 +62,6 @@ export async function startDisco(): Promise<[http.Server, URL]> {
         throw new Error('unable to get address to server')
     }
 
-    // return [server, new URL('', `http://${addr}`)]
+    // TODO: back to this: return [server, new URL('', `http://${addr}`)], it didn't work for me
     return [server, new URL('', 'http://localhost:8000')]
 }

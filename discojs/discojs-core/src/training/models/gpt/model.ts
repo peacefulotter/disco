@@ -1,3 +1,4 @@
+import { GPTConfig, getModelSizes, DEFAULT_CONFIG } from '.'
 import { dataset, tf, training } from '../../..'
 import { train } from './train'
 
@@ -388,57 +389,16 @@ function Block(conf: any) {
     return tf.model({ name: config.name, inputs: inputs, outputs: x2 as any })
 }
 
-function GPT(conf: any) {
+function GPT(conf: GPTConfig) {
     const configDefaults = {
         name: 'transformer',
-        bias: true,
-        debug: false,
-        tokEmb: true,
-        lmHead: true,
-    }
-    const configModels = {
-        gpt2: {
-            nLayer: 12,
-            nHead: 12,
-            nEmbd: 768,
-            vocabSize: 50257,
-            blockSize: 1024,
-        },
-        'gpt2-medium': {
-            nLayer: 24,
-            nHead: 16,
-            nEmbd: 1024,
-            vocabSize: 50257,
-            blockSize: 1024,
-        },
-        'gpt2-large': {
-            nLayer: 36,
-            nHead: 20,
-            nEmbd: 1280,
-            vocabSize: 50257,
-            blockSize: 1024,
-        },
-        'gpt2-xl': {
-            nLayer: 48,
-            nHead: 25,
-            nEmbd: 1600,
-            vocabSize: 50257,
-            blockSize: 1024,
-        },
-        'gpt-mini': { nLayer: 6, nHead: 6, nEmbd: 192 },
-        'gpt-micro': { nLayer: 4, nHead: 4, nEmbd: 128 },
-        'gpt-nano': { nLayer: 3, nHead: 3, nEmbd: 48 },
-    }
-    if (conf.modelType) {
-        if (!Object.keys(configModels).includes(conf.modelType)) {
-            throw new Error(`Invalid modelType: ${conf.modelType}`)
-        }
-        const modelConfig =
-            configModels[conf.modelType as keyof typeof configModels]
-        Object.assign(configDefaults, modelConfig)
+        ...DEFAULT_CONFIG,
     }
 
-    const config = Object.assign({}, configDefaults, conf)
+    const modelSizes = getModelSizes(conf.modelType)
+    const config = Object.assign({}, configDefaults, conf, modelSizes)
+
+    console.log('IN MODEL CONFIG', config)
 
     const inputs = tf.input({ shape: [null] })
 
@@ -653,38 +613,4 @@ class GPTLMHeadModel extends GPTModel {
     }
 }
 
-type ModelType =
-    | 'gpt2'
-    | 'gpt2-medium'
-    | 'gpt2-large'
-    | 'gpt2-xl'
-    | 'gpt-mini'
-    | 'gpt-micro'
-    | 'gpt-nano'
-
-type GPTConfig = {
-    lr: number
-    batchSize: number
-    blockSize: number
-    vocabSize: number
-    evaluate?: boolean
-    maxEvalBatches?: number
-    evaluateEvery?: number
-    epochs?: number
-    maxIter?: number
-    weightDecay?: number
-    verbose?: boolean
-    bias?: boolean
-    debug?: boolean
-    dropout?: number
-    residDrop?: number
-    embdDrop?: number
-    nLayer?: number
-    nHead?: number
-    nEmbd?: number
-    tokEmb?: boolean
-    lmHead?: boolean
-    modelType: ModelType
-}
-
-export { GPT, GPTModel, GPTLMHeadModel, type GPTConfig, generate, generateSync }
+export { GPT, GPTModel, GPTLMHeadModel, generate, generateSync }

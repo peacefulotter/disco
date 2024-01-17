@@ -65,7 +65,6 @@ const getIteratorArray = async (config: any) => {
             const { xs, ys } = await iter.next()
             const x = await xs.array()
             const y = await (ys.argMax(2) as tf.Tensor2D).array() // get indices of max values along last axis
-            tf.dispose([xs, ys])
             return { x, y }
         },
     }

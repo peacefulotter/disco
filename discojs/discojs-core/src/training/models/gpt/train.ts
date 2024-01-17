@@ -1,35 +1,10 @@
 import { dataset, tf, training } from '../../..'
 import { AdamW, clipByGlobalNormObj } from './optimizers'
 import { Wandb, WandbConfig } from './wandb'
-import { GPTConfig } from './model'
+import { GPTConfig, DEFAULT_CONFIG } from './config'
 import evaluate from './evaluate'
 
 export type GPTConfigWithWandb = Required<GPTConfig> & WandbConfig
-
-const DEFAULT_CONFIG: Required<GPTConfig> = {
-    lr: 0.001,
-    weightDecay: 0,
-    batchSize: 2,
-    epochs: 9999,
-    maxIter: 10_000,
-    verbose: false,
-    modelType: 'gpt-nano',
-    evaluate: true,
-    maxEvalBatches: 12,
-    evaluateEvery: 100,
-    blockSize: 128,
-    vocabSize: 50257,
-    bias: true,
-    debug: false,
-    dropout: 0.2,
-    residDrop: 0.2,
-    embdDrop: 0.2,
-    nLayer: 3,
-    nHead: 3,
-    nEmbd: 48,
-    tokEmb: true,
-    lmHead: true,
-}
 
 export const getConfig = (config: GPTConfig): GPTConfigWithWandb => ({
     ...DEFAULT_CONFIG,
@@ -89,12 +64,13 @@ export async function train(
     const start = Date.now()
     let time = start
 
-    while (true) {
-        console.time('gpt-iter')
+    console.warn('=== Starting training ===')
 
+    while (true) {
         callbacks.onBatchBegin(iteration)
 
         // Get new batch of x and y
+        let datasetTime = Date.now()
         let next = await iterator.next()
         if (next.done) {
             callbacks.onEpochEnd(epoch)
@@ -107,6 +83,9 @@ export async function train(
             next = await iterator.next()
         }
         const { xs, ys } = next.value
+        datasetTime = Date.now() - datasetTime
+
+        let iterationTime = Date.now()
 
         // Calculates loss, computes gradients and applies them
         const loss = tf.tidy(() => {
@@ -129,7 +108,7 @@ export async function train(
             'train/perplexity': Math.exp(lossVal),
             'train/loss': lossVal,
             iter: iteration,
-            'tf-mem': tf.memory().numBytes,
+            'tf-mem': tf.memory().numBytes * 0.000001, // MB
             dt_ms: Date.now() - time,
             time_s: (Date.now() - start) / 1000,
         }
@@ -149,7 +128,14 @@ export async function train(
 
         tf.dispose([loss, xs, ys])
 
-        console.timeEnd('gpt-iter')
+        iterationTime = Date.now() - iterationTime
+        console.log(
+            `Epoch: ${epoch}, Step: ${iteration} / ${
+                c.maxIter
+            }, Loss: ${lossVal.toFixed(
+                3
+            )}, Iteration time: ${iterationTime} ms, Dataset time: ${datasetTime} ms`
+        )
 
         // Check if we should stop
         iteration++

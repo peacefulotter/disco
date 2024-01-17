@@ -40,7 +40,9 @@ export abstract class Trainer implements TrainingCallbacks {
         public readonly model: training.model.Model
     ) {
         this.trainerLogger = new TrainerLogger()
-        this.roundTracker = new RoundTracker(task.trainingInformation.roundDuration)
+        this.roundTracker = new RoundTracker(
+            task.trainingInformation.roundDuration
+        )
     }
 
     protected abstract onRoundBegin(accuracy: number): Promise<void>
@@ -70,10 +72,11 @@ export abstract class Trainer implements TrainingCallbacks {
         if (logs === undefined) {
             return
         }
-
+        console.log('ON BATCH BEGIN')
         if (this.roundTracker.roundHasBegun()) {
             await this.onRoundBegin(logs.acc)
         }
+        console.log('ON BATCH BEGIN DONE')
     }
 
     async onEpochBegin(epoch: number, logs?: tf.Logs): Promise<void> {}
@@ -85,8 +88,12 @@ export abstract class Trainer implements TrainingCallbacks {
         this.trainerLogger.onEpochEnd(epoch, logs)
 
         if (logs !== undefined && !isNaN(logs.acc) && !isNaN(logs.val_acc)) {
-            this.trainingInformant.updateTrainingGraph(this.roundDecimals(logs.acc))
-            this.trainingInformant.updateValidationGraph(this.roundDecimals(logs.val_acc))
+            this.trainingInformant.updateTrainingGraph(
+                this.roundDecimals(logs.acc)
+            )
+            this.trainingInformant.updateValidationGraph(
+                this.roundDecimals(logs.val_acc)
+            )
         } else {
             this.trainerLogger.error('onEpochEnd: NaN value')
         }
@@ -125,7 +132,10 @@ export abstract class Trainer implements TrainingCallbacks {
     /**
      * Format accuracy
      */
-    protected roundDecimals(accuracy: number, decimalsToRound: number = 2): number {
+    protected roundDecimals(
+        accuracy: number,
+        decimalsToRound: number = 2
+    ): number {
         return +(accuracy * 100).toFixed(decimalsToRound)
     }
 

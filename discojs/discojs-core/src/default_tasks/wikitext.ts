@@ -1,6 +1,7 @@
 import { tf, Task, TaskProvider, TrainingSchemes } from '..'
 import * as gpt from '../training/models/gpt'
 import { TFJSModel, Model } from '../training/model'
+import { model } from '../training'
 
 const modelConfig: gpt.GPTConfig = {
     modelType: 'gpt-nano',
@@ -9,7 +10,7 @@ const modelConfig: gpt.GPTConfig = {
     batchSize: 4,
     blockSize: 128,
     lr: 0.001,
-    vocabSize: 50257,
+    vocabSize: 50258, // think it should be 50257 but somehow the tokenizer sometimes returns 50258
     evaluate: true,
     maxEvalBatches: 12,
     evaluateEvery: 100,
@@ -20,7 +21,7 @@ export const wikitext: TaskProvider<gpt.GPTConfig> = {
         return {
             id: 'wikitext-103',
             displayInformation: {
-                taskTitle: 'wikitext-103-raw',
+                taskTitle: 'Wikitext 103 Raw',
                 summary: {
                     preview:
                         'In this challenge, we ask you to do next word prediction on a dataset of Wikipedia articles.',
@@ -49,9 +50,9 @@ export const wikitext: TaskProvider<gpt.GPTConfig> = {
                 datasetBatchSize: modelConfig.batchSize,
                 learningRate: modelConfig.lr,
                 modelCompileData: {
-                    optimizer: 'sgd',
+                    optimizer: 'adam',
                     loss: 'categoricalCrossentropy',
-                    metrics: ['precision', 'mse'], // 'perplexity' doesnt exist
+                    metrics: [], // 'precision', 'mse' ,    'perplexity' doesnt exist
                 },
                 modelConfig,
                 /**
@@ -66,9 +67,9 @@ export const wikitext: TaskProvider<gpt.GPTConfig> = {
                 //     data.TextPreprocessing.Tokenize,
                 //     data.TextPreprocessing.Padding,
                 // ],
-                // vocabSize: 50257
+                // vocabSize: 50258
                 // blockSize: 64
-                scheme: TrainingSchemes.FEDERATED,
+                scheme: TrainingSchemes.LOCAL,
                 noiseScale: undefined,
                 decentralizedSecure: true,
                 minimumReadyPeers: 3,

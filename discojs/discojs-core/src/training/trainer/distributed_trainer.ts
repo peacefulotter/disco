@@ -32,14 +32,21 @@ export class DistributedTrainer extends Trainer {
     }
 
     async onTrainBegin(logs?: tf.Logs): Promise<void> {
+        console.log('ON TRAIN BEGIN', logs)
+
         await super.onTrainBegin(logs)
 
         const weights = WeightsContainer.from(this.model)
 
-        await this.client.onTrainBeginCommunication(weights, this.trainingInformant)
+        await this.client.onTrainBeginCommunication(
+            weights,
+            this.trainingInformant
+        )
     }
 
     async onRoundBegin(accuracy: number): Promise<void> {
+        console.log('ON ROUND BEGIN', accuracy)
+
         const weights = WeightsContainer.from(this.model)
 
         await this.client.onRoundBeginCommunication(
@@ -47,6 +54,8 @@ export class DistributedTrainer extends Trainer {
             this.roundTracker.round,
             this.trainingInformant
         )
+
+        console.log('DONE')
     }
 
     /**
@@ -63,11 +72,16 @@ export class DistributedTrainer extends Trainer {
         if (this.aggregator.model !== undefined) {
             // The aggregator's own aggregation is async. The trainer updates its model to match the aggregator's
             // after it has completed a round of training.
-            this.model.toTfjs().setWeights(this.aggregator.model.toTfjs().getWeights())
+            this.model
+                .toTfjs()
+                .setWeights(this.aggregator.model.toTfjs().getWeights())
         }
 
         await this.memory.updateWorkingModel(
-            { taskID: this.task.id, name: this.task.trainingInformation.modelID },
+            {
+                taskID: this.task.id,
+                name: this.task.trainingInformation.modelID,
+            },
             this.model.toTfjs()
         )
     }

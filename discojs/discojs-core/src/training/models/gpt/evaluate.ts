@@ -1,5 +1,5 @@
 import { tf, dataset } from '../../..'
-import { GPTConfig } from './model'
+import { GPTConfig } from '.'
 
 export default async function evaluate(
     model: any,

@@ -31,7 +31,9 @@ export class DecentralizedClient extends Client {
     /**
      * Send message to server that this client is ready for the next training round.
      */
-    private async waitForPeers(round: number): Promise<Map<NodeID, PeerConnection>> {
+    private async waitForPeers(
+        round: number
+    ): Promise<Map<NodeID, PeerConnection>> {
         console.info(`[${this.ownId}] is ready for round`, round)
 
         // Broadcast our readiness
@@ -44,7 +46,10 @@ export class DecentralizedClient extends Client {
 
         // Wait for peers to be connected before sending any update information
         try {
-            const receivedMessage = await waitMessageWithTimeout(this.server, type.PeersForRound)
+            const receivedMessage = await waitMessageWithTimeout(
+                this.server,
+                type.PeersForRound
+            )
             if (this.nodes.size > 0) {
                 throw new Error(
                     'got new peer list from server but was already received for this round'
@@ -52,7 +57,10 @@ export class DecentralizedClient extends Client {
             }
 
             const peers = Set(receivedMessage.peers)
-            console.info(`[${this.ownId}] received peers for round:`, peers.toJS())
+            console.info(
+                `[${this.ownId}] received peers for round:`,
+                peers.toJS()
+            )
             if (this.ownId !== undefined && peers.has(this.ownId)) {
                 throw new Error('received peer list contains our own id')
             }
@@ -83,7 +91,10 @@ export class DecentralizedClient extends Client {
         }
     }
 
-    protected sendMessagetoPeer(peer: PeerConnection, msg: messages.PeerMessage): void {
+    protected sendMessagetoPeer(
+        peer: PeerConnection,
+        msg: messages.PeerMessage
+    ): void {
         console.info(`[${this.ownId}] send message to peer`, msg.peer, msg)
         peer.send(msg)
     }
@@ -192,11 +203,19 @@ export class DecentralizedClient extends Client {
                     await Promise.all(
                         payloads.map(async (payload, id) => {
                             if (id === this.ownId) {
-                                this.aggregator.add(this.ownId, payload, round, r)
+                                this.aggregator.add(
+                                    this.ownId,
+                                    payload,
+                                    round,
+                                    r
+                                )
                             } else {
                                 const connection = this.connections?.get(id)
                                 if (connection !== undefined) {
-                                    const encoded = await serialization.weights.encode(payload)
+                                    const encoded =
+                                        await serialization.weights.encode(
+                                            payload
+                                        )
                                     this.sendMessagetoPeer(connection, {
                                         type: type.Payload,
                                         peer: id,
@@ -231,16 +250,33 @@ export class DecentralizedClient extends Client {
         this.aggregator.resetNodes()
     }
 
-    private receivePayloads(connections: Map<NodeID, PeerConnection>, round: number): void {
-        console.info(`[${this.ownId}] Accepting new contributions for round ${round}`)
+    private receivePayloads(
+        connections: Map<NodeID, PeerConnection>,
+        round: number
+    ): void {
+        console.info(
+            `[${this.ownId}] Accepting new contributions for round ${round}`
+        )
         connections.forEach(async (connection, peerId) => {
             let receivedPayloads = 0
             do {
                 try {
-                    const message = await waitMessageWithTimeout(connection, type.Payload)
-                    const decoded = serialization.weights.decode(message.payload)
+                    const message = await waitMessageWithTimeout(
+                        connection,
+                        type.Payload
+                    )
+                    const decoded = serialization.weights.decode(
+                        message.payload
+                    )
 
-                    if (!this.aggregator.add(peerId, decoded, round, message.round)) {
+                    if (
+                        !this.aggregator.add(
+                            peerId,
+                            decoded,
+                            round,
+                            message.round
+                        )
+                    ) {
                         console.warn(
                             `[${this.ownId}] Failed to add contribution from peer ${peerId}`
                         )
