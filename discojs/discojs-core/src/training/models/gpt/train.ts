@@ -65,6 +65,7 @@ export async function train(
     let time = start
 
     console.warn('=== Starting training ===')
+    callbacks.onEpochBegin(epoch)
 
     while (true) {
         callbacks.onBatchBegin(iteration)
@@ -83,6 +84,7 @@ export async function train(
             next = await iterator.next()
         }
         const { xs, ys } = next.value
+
         datasetTime = Date.now() - datasetTime
 
         let iterationTime = Date.now()
@@ -104,11 +106,12 @@ export async function train(
         callbacks.onBatchEnd(iteration)
 
         // Create a WandB log payload, evaluate every
+        const memory = tf.memory().numBytes * 0.000001
         const payload = {
             'train/perplexity': Math.exp(lossVal),
             'train/loss': lossVal,
             iter: iteration,
-            'tf-mem': tf.memory().numBytes * 0.000001, // MB
+            'tf-mem': memory, // MB
             dt_ms: Date.now() - time,
             time_s: (Date.now() - start) / 1000,
         }
@@ -130,11 +133,13 @@ export async function train(
 
         iterationTime = Date.now() - iterationTime
         console.log(
-            `Epoch: ${epoch}, Step: ${iteration} / ${
+            `Epoch: ${epoch},\tStep: ${iteration} / ${
                 c.maxIter
-            }, Loss: ${lossVal.toFixed(
+            },\tLoss: ${lossVal.toFixed(
                 3
-            )}, Iteration time: ${iterationTime} ms, Dataset time: ${datasetTime} ms`
+            )},\tIteration time: ${iterationTime} ms, \tDataset time: ${datasetTime} ms,\tMemory: ${memory.toFixed(
+                2
+            )} MB`
         )
 
         // Check if we should stop

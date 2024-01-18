@@ -197,6 +197,7 @@ describe('web text loader', () => {
                 maxIterations: 10,
             },
         }
+
         const ds = await getDataset(config)
         const data = await dataset.TextData.init(ds, t)
         const url = new URL('', 'http://localhost:8000')

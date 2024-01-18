@@ -72,11 +72,9 @@ export abstract class Trainer implements TrainingCallbacks {
         if (logs === undefined) {
             return
         }
-        console.log('ON BATCH BEGIN')
         if (this.roundTracker.roundHasBegun()) {
             await this.onRoundBegin(logs.acc)
         }
-        console.log('ON BATCH BEGIN DONE')
     }
 
     async onEpochBegin(epoch: number, logs?: tf.Logs): Promise<void> {}

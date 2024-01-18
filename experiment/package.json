@@ -4,7 +4,7 @@
     "type": "module",
     "main": "main.ts",
     "scripts": {
-        "dev": "bun main.ts wikitext-103",
+        "dev": "rm -rf ./models/wikitext-103 && bun --bun main.ts wikitext-103",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "license": "ISC",

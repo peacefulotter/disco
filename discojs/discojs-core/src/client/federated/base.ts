@@ -134,13 +134,19 @@ export class FederatedClient extends Client {
         const msg: messages.MessageBase = {
             type: type.ReceiveServerPayload,
         }
+
+        // FIXME: this is never received in the server
         this.server.send(msg)
 
         try {
+            console.log('[FED CLIENT] RECEIVING RESULT, 1')
+
             const { payload, round } = await waitMessageWithTimeout(
                 this.server,
                 type.ReceiveServerPayload
             )
+            console.log('[FED CLIENT] RECEIVING RESULT, 2')
+
             this.serverRound = round
 
             // Store the server result only if it is not stale
@@ -259,10 +265,14 @@ export class FederatedClient extends Client {
             throw new Error('local aggregation result was not set')
         }
 
+        console.log('[FED CLIENT] ON ROUND END COMM 1')
+
         // Send our contribution to the server
         await this.sendPayload(this.aggregator.makePayloads(weights).first())
+        console.log('[FED CLIENT] ON ROUND END COMM 2')
         // Fetch the server result
         await this.receiveResult()
+        console.log('[FED CLIENT] ON ROUND END COMM 3')
 
         // TODO @s314cy: add communication rounds to federated learning
         if (
@@ -274,6 +284,7 @@ export class FederatedClient extends Client {
                 0
             )
         ) {
+            console.log('[FED CLIENT] ON ROUND END COMM 4')
             // Regular case: the server sends us its aggregation result which will serve our
             // own aggregation result.
         } else {
@@ -284,6 +295,8 @@ export class FederatedClient extends Client {
             )
             this.aggregator.nextRound()
         }
+
+        console.log('[FED CLIENT] ON ROUND END COMM DONE')
 
         // Pull statistics about the contributors
         // await this.receiveStatistics(trainingInformant)

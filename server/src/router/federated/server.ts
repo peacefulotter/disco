@@ -138,8 +138,11 @@ export class Federated extends Server {
             clientId = randomUUID()
         }
 
+        console.log('[DEC SERVER] handle')
+
         ws.on('message', (data: Buffer) => {
             const msg = msgpack.decode(data)
+            console.log('[DEC SERVER] on WS MESSAGE', msg)
 
             if (msg.type === MessageTypes.ClientConnected) {
                 let aggregator = this.aggregators.get(task.id)
@@ -236,6 +239,8 @@ export class Federated extends Server {
                     )
                 }
 
+                console.log('[DEC SERVER] promisedResult', promisedResult)
+
                 // Wait for aggregation result with timeout, giving the network a time window
                 // to contribute to the model sent to the requesting client.
                 void Promise.race([promisedResult, client.utils.timeout()])
@@ -254,6 +259,10 @@ export class Federated extends Server {
                             ] as [serialization.weights.Encoded, number]
                     )
                     .then(([serialized, round]) => {
+                        console.log('[DEC SERVER] promisedResult', [
+                            serialized,
+                            round,
+                        ])
                         const msg: messages.ReceiveServerPayload = {
                             type: MessageTypes.ReceiveServerPayload,
                             round,

@@ -37,27 +37,18 @@ export class TFJSModel<ModelConfig = unknown> extends Model<ModelConfig> {
 
         console.log('TFJSModel.fit', config)
 
-        const {
-            value: { xs, ys },
-        } = await (await training.iterator()).next()
-        console.log(xs.shape, ys.shape)
-        const ys_pred = this.model.apply(xs) as tf.Tensor
-        console.log(ys_pred.shape)
-        const loss = tf.losses.softmaxCrossEntropy(ys, ys_pred)
-        const lossVal = await loss.array()
-        console.log(lossVal)
-
-        const history = await this.model.fitDataset(training, {
-            batchesPerEpoch: this.task.trainingInformation.maxIterations,
-            epochs: 1,
-            validationData: validation,
-            callbacks,
-        })
-
-        console.log(history)
+        // TODO: make it work with fitDataset instead of only using the gpt.train function
+        //       the loss is NaN somehow with this
+        // const history = await this.model.fitDataset(training, {
+        //     batchesPerEpoch: this.task.trainingInformation.maxIterations,
+        //     epochs: 1,
+        //     validationData: validation,
+        //     callbacks,
+        // })
+        // console.log(history)
 
         // FIXME + TODO: only valid for GPT-TFJS
-        // await gpt.train(this.model, training, config, callbacks, validation)
+        await gpt.train(this.model, training, config, callbacks, validation)
     }
 
     toTfjs(): tf.LayersModel {

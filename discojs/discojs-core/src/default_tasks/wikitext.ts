@@ -1,16 +1,15 @@
 import { tf, Task, TaskProvider, TrainingSchemes } from '..'
 import * as gpt from '../training/models/gpt'
 import { TFJSModel, Model } from '../training/model'
-import { model } from '../training'
 
 const modelConfig: gpt.GPTConfig = {
-    modelType: 'gpt-nano',
+    modelType: 'gpt2',
     epochs: 10,
     maxIter: 10_000,
     batchSize: 4,
     blockSize: 128,
     lr: 0.001,
-    vocabSize: 50258, // think it should be 50257 but somehow the tokenizer sometimes returns 50258
+    vocabSize: 50258, // TODO: think it should be 50257 but somehow the tokenizer sometimes returns 50258, need to test (it appears in tiny-shakespeare)
     evaluate: true,
     maxEvalBatches: 12,
     evaluateEvery: 100,
@@ -40,7 +39,7 @@ export const wikitext: TaskProvider<gpt.GPTConfig> = {
             trainingInformation: {
                 dataType: 'text',
                 modelID: 'wikitext-103-raw-model',
-                validationSplit: 0.2, // FIXME: is this used somewhere? because train, eval and test are already split in dataset
+                validationSplit: 0.2, // TODO: is this used somewhere? because train, eval and test are already split in dataset
                 maxIterations: modelConfig.maxIter,
                 epochs: modelConfig.epochs ?? 1,
                 // constructing a batch is taken care automatically in the dataset to make things faster
@@ -69,7 +68,7 @@ export const wikitext: TaskProvider<gpt.GPTConfig> = {
                 // ],
                 // vocabSize: 50258
                 // blockSize: 64
-                scheme: TrainingSchemes.LOCAL,
+                scheme: TrainingSchemes.LOCAL, // FIXME: FEDERATED / DECENTRALIZED is broken because of Bun I think
                 noiseScale: undefined,
                 decentralizedSecure: true,
                 minimumReadyPeers: 3,
@@ -80,8 +79,7 @@ export const wikitext: TaskProvider<gpt.GPTConfig> = {
     },
 
     async getModel(): Promise<Model> {
-        console.log('GPT Config:', modelConfig)
-        // const model = new gpt.GPTLMHeadModel(config)
+        console.log('[wikitext-103 task] GPT Config:', modelConfig)
         const model = gpt.GPT(modelConfig)
         return new TFJSModel(this.getTask(), model as any as tf.LayersModel)
     },

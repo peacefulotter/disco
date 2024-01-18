@@ -9,8 +9,14 @@ import { SignalData } from 'simple-peer'
 import { timeout } from './utils'
 
 export interface EventConnection {
-    on: <K extends type>(type: K, handler: (event: NarrowMessage<K>) => void) => void
-    once: <K extends type>(type: K, handler: (event: NarrowMessage<K>) => void) => void
+    on: <K extends type>(
+        type: K,
+        handler: (event: NarrowMessage<K>) => void
+    ) => void
+    once: <K extends type>(
+        type: K,
+        handler: (event: NarrowMessage<K>) => void
+    ) => void
     send: <T extends Message>(msg: T) => void
     disconnect: () => void
 }
@@ -32,7 +38,12 @@ export async function waitMessageWithTimeout<T extends type>(
     type: T,
     timeoutMs?: number
 ): Promise<NarrowMessage<T>> {
-    return await Promise.race([waitMessage(connection, type), timeout(timeoutMs)])
+    console.log('[EVENT_CONNECTION] waitMessageWithTimeout', type, timeoutMs)
+
+    return await Promise.race([
+        waitMessage(connection, type),
+        timeout(timeoutMs),
+    ])
 }
 
 export class PeerConnection implements EventConnection {
@@ -60,13 +71,17 @@ export class PeerConnection implements EventConnection {
             const msg = msgpack.decode(data)
 
             if (!decentralizedMessages.isPeerMessage(msg)) {
-                throw new Error(`invalid message received: ${JSON.stringify(msg)}`)
+                throw new Error(
+                    `invalid message received: ${JSON.stringify(msg)}`
+                )
             }
 
             this.eventEmitter.emit(msg.type.toString(), msg)
         })
 
-        this.peer.on('close', () => console.warn('peer', this.peer.id, 'closed connection'))
+        this.peer.on('close', () =>
+            console.warn('peer', this.peer.id, 'closed connection')
+        )
 
         return await new Promise((resolve) => {
             this.peer.on('connect', () => {
@@ -79,17 +94,25 @@ export class PeerConnection implements EventConnection {
         this.peer.signal(signal)
     }
 
-    on<K extends type>(type: K, handler: (event: NarrowMessage<K>) => void): void {
+    on<K extends type>(
+        type: K,
+        handler: (event: NarrowMessage<K>) => void
+    ): void {
         this.eventEmitter.on(type.toString(), handler)
     }
 
-    once<K extends type>(type: K, handler: (event: NarrowMessage<K>) => void): void {
+    once<K extends type>(
+        type: K,
+        handler: (event: NarrowMessage<K>) => void
+    ): void {
         this.eventEmitter.once(type.toString(), handler)
     }
 
     send<T extends Message>(msg: T): void {
         if (!decentralizedMessages.isPeerMessage(msg)) {
-            throw new Error(`can't send this type of message: ${JSON.stringify(msg)}`)
+            throw new Error(
+                `can't send this type of message: ${JSON.stringify(msg)}`
+            )
         }
         this.peer.send(msgpack.encode(msg))
     }
@@ -112,8 +135,11 @@ export class WebSocketServer implements EventConnection {
         validateReceived?: (msg: any) => boolean,
         validateSent?: (msg: any) => boolean
     ): Promise<WebSocketServer> {
-        const WS = typeof window !== 'undefined' ? window.WebSocket : isomorphic.WebSocket
-        const ws: WebSocket = new WS(url)
+        const WS =
+            typeof window !== 'undefined'
+                ? window.WebSocket
+                : isomorphic.WebSocket
+        const ws: WebSocket = new WS(url) as WebSocket
         ws.binaryType = 'arraybuffer'
 
         const emitter: EventEmitter = new EventEmitter()
@@ -130,10 +156,13 @@ export class WebSocketServer implements EventConnection {
             }
 
             const msg = msgpack.decode(new Uint8Array(event.data))
+            console.log('[EVENT CONNECTION] ON MESSAGE', msg)
 
             // Validate message format
             if (validateReceived && !validateReceived(msg)) {
-                throw new Error(`invalid message received: ${JSON.stringify(msg)}`)
+                throw new Error(
+                    `invalid message received: ${JSON.stringify(msg)}`
+                )
             }
 
             emitter.emit(msg.type.toString(), msg)
@@ -151,17 +180,25 @@ export class WebSocketServer implements EventConnection {
     }
 
     // Not straigtforward way of making sure the handler take the correct message type as a parameter, for typesafety
-    on<K extends type>(type: K, handler: (event: NarrowMessage<K>) => void): void {
+    on<K extends type>(
+        type: K,
+        handler: (event: NarrowMessage<K>) => void
+    ): void {
         this.eventEmitter.on(type.toString(), handler)
     }
 
-    once<K extends type>(type: K, handler: (event: NarrowMessage<K>) => void): void {
+    once<K extends type>(
+        type: K,
+        handler: (event: NarrowMessage<K>) => void
+    ): void {
         this.eventEmitter.once(type.toString(), handler)
     }
 
     send(msg: Message): void {
         if (this.validateSent && !this.validateSent(msg)) {
-            throw new Error(`can't send this type of message: ${JSON.stringify(msg)}`)
+            throw new Error(
+                `can't send this type of message: ${JSON.stringify(msg)}`
+            )
         }
 
         this.socket.send(msgpack.encode(msg))
