@@ -31,8 +31,4 @@ export interface Tokenizer {
 //         })
 //         await trainer.onTrainEnd()
 //     }
-
-//     toTfjs(): tf.LayersModel {
-//         return this.gpt.model
-//     }
 // }

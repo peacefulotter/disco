@@ -55,7 +55,7 @@ export async function train(
 
     const wandb = new Wandb(c)
 
-    callbacks.onTrainBegin()
+    await callbacks.onTrainBegin()
 
     let epoch = 1
     let iteration = 1
@@ -65,21 +65,21 @@ export async function train(
     let time = start
 
     console.warn('=== Starting training ===')
-    callbacks.onEpochBegin(epoch)
+    await callbacks.onEpochBegin(epoch)
 
     while (true) {
-        callbacks.onBatchBegin(iteration)
+        await callbacks.onBatchBegin(iteration)
 
         // Get new batch of x and y
         let datasetTime = Date.now()
         let next = await iterator.next()
         if (next.done) {
-            callbacks.onEpochEnd(epoch)
+            await callbacks.onEpochEnd(epoch)
             epoch++
             if (c.epochs && epoch > c.epochs) {
                 break
             }
-            callbacks.onEpochBegin(epoch)
+            await callbacks.onEpochBegin(epoch)
             iterator = await ds.iterator()
             next = await iterator.next()
         }
@@ -103,7 +103,7 @@ export async function train(
 
         const lossVal = await loss.array()
 
-        callbacks.onBatchEnd(iteration)
+        await callbacks.onBatchEnd(iteration)
 
         // Create a WandB log payload, evaluate every
         const memory = tf.memory().numBytes * 0.000001
@@ -156,6 +156,6 @@ export async function train(
         await new Promise((resolve) => setTimeout(resolve, 1))
     }
 
-    callbacks.onTrainEnd()
+    await callbacks.onTrainEnd()
     wandb.finish()
 }

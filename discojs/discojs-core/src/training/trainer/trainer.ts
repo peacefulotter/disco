@@ -141,7 +141,7 @@ export abstract class Trainer implements TrainingCallbacks {
      * reset stop training state
      */
     protected resetStopTrainerState(): void {
-        this.model.toTfjs().stopTraining = false
+        this.model.tfjs.stopTraining = false
         this.stopTrainingRequested = false
     }
 
@@ -150,7 +150,7 @@ export abstract class Trainer implements TrainingCallbacks {
      */
     protected stopTrainModelIfRequested(): void {
         if (this.stopTrainingRequested) {
-            this.model.toTfjs().stopTraining = true
+            this.model.tfjs.stopTraining = true
             this.stopTrainingRequested = false
         }
     }

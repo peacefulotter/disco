@@ -9,8 +9,11 @@ export class LocalTrainer extends Trainer {
     async onRoundEnd(accuracy: number): Promise<void> {
         console.log('on round end')
         await this.memory.updateWorkingModel(
-            { taskID: this.task.id, name: this.task.trainingInformation.modelID },
-            this.model.toTfjs()
+            {
+                taskID: this.task.id,
+                name: this.task.trainingInformation.modelID,
+            },
+            this.model.tfjs
         )
     }
 

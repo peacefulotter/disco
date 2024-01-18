@@ -156,7 +156,7 @@ export class WebSocketServer implements EventConnection {
             }
 
             const msg = msgpack.decode(new Uint8Array(event.data))
-            console.log('[EVENT CONNECTION] ON MESSAGE', msg)
+            console.log('[WebSocketServer] ON MESSAGE', msg)
 
             // Validate message format
             if (validateReceived && !validateReceived(msg)) {
@@ -200,6 +200,8 @@ export class WebSocketServer implements EventConnection {
                 `can't send this type of message: ${JSON.stringify(msg)}`
             )
         }
+        const m = msg as any
+        if (m.payload) console.log('SENDING SOCKET BUFFER: ', m.payload.length)
 
         this.socket.send(msgpack.encode(msg))
     }

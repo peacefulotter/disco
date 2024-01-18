@@ -2,7 +2,7 @@ import express from 'express'
 import expressWS from 'express-ws'
 import WebSocket from 'ws'
 
-import { Task, training } from '@epfml/discojs-node'
+import { tf, Task, training } from '@epfml/discojs-node'
 
 import { TasksAndModels } from '../tasks'
 
@@ -26,7 +26,10 @@ export abstract class Server {
         For every task and model, this.onNewTask creates a path /taskID and routes it to this.handle.
         */
         process.nextTick(() =>
-            tasksAndModels.addListener('taskAndModel', (t, m) => this.onNewTask(t, m))
+            tasksAndModels.addListener(
+                'taskAndModel',
+                (t: Task, m: tf.LayersModel) => this.onNewTask(t, m)
+            )
         )
     }
 
@@ -34,13 +37,21 @@ export abstract class Server {
         return this.ownRouter
     }
 
-    private onNewTask(task: Task, model: training.model.Model): void {
+    private onNewTask(task: Task, model: tf.LayersModel): void {
         this.tasks.push(task.id)
-        this.initTask(task, model)
+        const m = new training.model.TFJSModel(task, model)
+        this.initTask(task, m)
 
         this.ownRouter.ws(this.buildRoute(task), (ws, req) => {
+            console.log(
+                'FEDERATED ROUTER, IN WS',
+                task.id,
+                this.buildRoute(task),
+                this.isValidUrl(req.url),
+                req.body
+            )
             if (this.isValidUrl(req.url)) {
-                this.handle(task, ws, model, req)
+                this.handle(task, ws, m, req)
             } else {
                 ws.terminate()
                 ws.close()

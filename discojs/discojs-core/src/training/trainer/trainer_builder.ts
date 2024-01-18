@@ -38,6 +38,8 @@ export class TrainerBuilder {
     ): Promise<Trainer> {
         const model = await this.getModel(client)
 
+        console.log('trainer builder', Object.keys(model))
+
         if (distributed) {
             return new DistributedTrainer(
                 this.task,
@@ -47,7 +49,12 @@ export class TrainerBuilder {
                 client
             )
         } else {
-            return new LocalTrainer(this.task, this.trainingInformant, this.memory, model)
+            return new LocalTrainer(
+                this.task,
+                this.trainingInformant,
+                this.memory,
+                model
+            )
         }
     }
 
@@ -55,15 +62,25 @@ export class TrainerBuilder {
      * If a model exists in memory, laod it, otherwise load model from server
      * @returns
      */
-    private async getModel(client: clients.Client): Promise<training.model.Model> {
+    private async getModel(
+        client: clients.Client
+    ): Promise<training.model.Model> {
         const modelID = this.task.trainingInformation?.modelID
         if (modelID === undefined) {
             throw new TypeError('model ID is undefined')
         }
 
-        const info: ModelInfo = { type: ModelType.WORKING, taskID: this.task.id, name: modelID }
+        const info: ModelInfo = {
+            type: ModelType.WORKING,
+            taskID: this.task.id,
+            name: modelID,
+        }
+        console.log(info)
 
-        const model = await ((await this.memory.contains(info))
+        const inMemory = await this.memory.contains(info)
+        console.log('inMmeory', inMemory)
+
+        const model = await (inMemory
             ? this.memory.getModel(info)
             : client.getLatestModel())
 
@@ -73,7 +90,7 @@ export class TrainerBuilder {
     private async updateModelInformation(
         model: training.model.Model
     ): Promise<training.model.Model> {
-        const m = model.toTfjs()
+        const m = model.tfjs
         // Continue local training from previous epoch checkpoint
         if (m.getUserDefinedMetadata() === undefined) {
             m.setUserDefinedMetadata({ epoch: 0 })

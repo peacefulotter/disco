@@ -1,7 +1,21 @@
-import { dataset, Disco, fetchTasks, Task, tf } from '@epfml/discojs-node'
+import { dataset, Disco, fetchTasks, Task } from '@epfml/discojs-node'
 
 import { startDisco } from '@epfml/disco-server'
 import { loadData, loadDataFace } from './data'
+
+{
+    let serve = Bun.serve
+    Bun.serve = (x) =>
+        serve({
+            ...x,
+            websocket: (x as any).websocket
+                ? {
+                      ...(x as any).websocket,
+                      maxPayloadLength: 1_000_000_000,
+                  }
+                : undefined,
+        })
+}
 
 /**
  * Example of discojs API, we load data, build the appropriate loggers, the disco object
@@ -34,16 +48,15 @@ async function main(): Promise<void> {
 
     // Choose your task to train
     // TODO: rename this task just to llm or gpt (?), because it would be the same task for many datasets
-    const task = tasks.get('wikitext-103') // no matter the dataset picked, the task is the same
-
-    // const task = tasks.get('simple_face')
+    // const task = tasks.get('wikitext-103') // no matter the dataset picked, the task is the same
+    const task = tasks.get('simple_face') // no matter the dataset picked, the task is the same
 
     if (task === undefined) {
         throw new Error('task not found')
     }
 
-    const dataset = await loadData(task, name)
-    // const dataset = await loadDataFace(task)
+    const dataset = await loadDataFace(task)
+    // const dataset = await loadData(task, name)
 
     // Add more users to the list to simulate more clients
     await Promise.all([

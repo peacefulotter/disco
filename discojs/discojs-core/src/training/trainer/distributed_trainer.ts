@@ -80,9 +80,7 @@ export class DistributedTrainer extends Trainer {
             // The aggregator's own aggregation is async. The trainer updates its model to match the aggregator's
             // after it has completed a round of training.
             console.log('[DEC TRAINER] ON ROUND END 3')
-            this.model
-                .toTfjs()
-                .setWeights(this.aggregator.model.toTfjs().getWeights())
+            this.model.tfjs.setWeights(this.aggregator.model.tfjs.getWeights())
             console.log('[DEC TRAINER] ON ROUND END 4')
         }
 
@@ -93,7 +91,7 @@ export class DistributedTrainer extends Trainer {
                 taskID: this.task.id,
                 name: this.task.trainingInformation.modelID,
             },
-            this.model.toTfjs()
+            this.model.tfjs
         )
         console.log('[DEC TRAINER] ON ROUND END DONE')
     }

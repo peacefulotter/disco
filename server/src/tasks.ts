@@ -8,6 +8,7 @@ import {
     Task,
     Path,
     Digest,
+    training,
     isTaskProvider,
     TaskProvider,
     defaultTasks,
@@ -40,7 +41,9 @@ export class TasksAndModels extends EventEmitter {
     }
 
     // Returns already saved model in priority, then the model from the task definition
-    private async loadModelFromTask(task: Task | TaskProvider): Promise<tf.LayersModel> {
+    private async loadModelFromTask(
+        task: Task | TaskProvider
+    ): Promise<tf.LayersModel> {
         const discoTask = isTaskProvider(task) ? task.getTask() : task
         let model: tf.LayersModel | undefined
 
@@ -57,7 +60,7 @@ export class TasksAndModels extends EventEmitter {
                 // FIXME: a bit odd to go from tfjs world to disco training.model.Model world back to tfjs world...
                 // 		  might want to return a Model from loadModelFromTask instead of a tf.LayersModel
                 const trainingModel = await task.getModel()
-                model = trainingModel.toTfjs()
+                model = trainingModel.tfjs
             } else {
                 throw new Error('model not provided in task definition')
             }
@@ -85,7 +88,12 @@ export class TasksAndModels extends EventEmitter {
 
         const modelConfig = JSON.parse(modelConfigRaw.toString())
         const weightsFiles = modelConfig.weightsManifest[0].paths
-        if (!(Array.isArray(weightsFiles) && typeof weightsFiles[0] === 'string')) {
+        if (
+            !(
+                Array.isArray(weightsFiles) &&
+                typeof weightsFiles[0] === 'string'
+            )
+        ) {
             throw new Error()
         }
         weightsFiles.forEach((file: string) => {
@@ -95,14 +103,19 @@ export class TasksAndModels extends EventEmitter {
 
         const computedDigest = hash.digest('base64')
         if (computedDigest !== digest.value) {
-            console.warn(`digest was\n ${computedDigest}\nbut expected\n${digest.value}`)
+            console.warn(
+                `digest was\n ${computedDigest}\nbut expected\n${digest.value}`
+            )
             throw new Error('digest mismatch')
         } else {
             console.info('digest verified')
         }
     }
 
-    async addTaskAndModel(task: Task | TaskProvider, model?: tf.LayersModel | URL): Promise<void> {
+    async addTaskAndModel(
+        task: Task | TaskProvider,
+        model?: tf.LayersModel | URL
+    ): Promise<void> {
         let tfModel: tf.LayersModel
         let discoTask: Task
 

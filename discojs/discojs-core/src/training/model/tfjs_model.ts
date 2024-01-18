@@ -16,30 +16,30 @@ export class TFJSModel<ModelConfig = unknown> extends Model<ModelConfig> {
         }
 
         // ============ NORMAL way of doing it ============
-        // const { training, validation } = dataset.data.data_split.extract(tuple)
-        // await this.model.fitDataset(training, {
-        //     epochs: this.task.trainingInformation.epochs,
-        //     validationData: validation,
-        //     callbacks,
-        // })
+        const { training, validation } = dataset.data.data_split.extract(tuple)
+        await this.tfjs.fitDataset(training, {
+            epochs: this.task.trainingInformation.epochs,
+            validationData: validation,
+            callbacks,
+        })
         // ================================================
 
-        // because dataset does not require to be preprocessed nor batched
-        // but this only works for gpt
+        // no need for extract(tuple) because dataset does not require to be preprocessed nor batched
+        // but this only works for gpt.
         // TODO: add evaluate? to the task training info and don't get validation if task disables it?
-        const { training, validation } = {
-            training: tuple.train.dataset,
-            validation: tuple.validation?.dataset ?? tuple.train.dataset,
-        }
+        // const { training, validation } = {
+        //     training: tuple.train.dataset,
+        //     validation: tuple.validation?.dataset ?? tuple.train.dataset,
+        // }
 
-        const config = this.task.trainingInformation
-            .modelConfig as gpt.GPTConfig
+        // const config = this.task.trainingInformation
+        //     .modelConfig as gpt.GPTConfig
 
-        console.log('TFJSModel.fit', config)
+        // console.log('TFJSModel.fit', config)
 
-        // TODO: make it work with fitDataset instead of only using the gpt.train function
-        //       the loss is NaN somehow with this
-        // const history = await this.model.fitDataset(training, {
+        // // TODO: make it work with fitDataset instead of only using the gpt.train function
+        // //       the loss is NaN somehow with this
+        // const history = await this.tfjs.fitDataset(training, {
         //     batchesPerEpoch: this.task.trainingInformation.maxIterations,
         //     epochs: 1,
         //     validationData: validation,
@@ -48,10 +48,6 @@ export class TFJSModel<ModelConfig = unknown> extends Model<ModelConfig> {
         // console.log(history)
 
         // FIXME + TODO: only valid for GPT-TFJS
-        await gpt.train(this.model, training, config, callbacks, validation)
-    }
-
-    toTfjs(): tf.LayersModel {
-        return this.model
+        // await gpt.train(this.model, training, config, callbacks, validation)
     }
 }

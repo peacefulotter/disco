@@ -31,7 +31,10 @@ export class Validator {
     }
 
     private getLabel(ys: tf.Tensor): Float32Array | Int32Array | Uint8Array {
-        if (this.task.trainingInformation.modelCompileData.loss === 'binaryCrossentropy') {
+        if (
+            this.task.trainingInformation.modelCompileData.loss ===
+            'binaryCrossentropy'
+        ) {
             return ys.greaterEqual(tf.scalar(0.5)).dataSync()
         } else {
             return ys.argMax(1).dataSync()
@@ -41,7 +44,9 @@ export class Validator {
     async assess(
         data: dataset.Data,
         useConfusionMatrix?: boolean
-    ): Promise<Array<{ groundTruth: number; pred: number; features: Features }>> {
+    ): Promise<
+        Array<{ groundTruth: number; pred: number; features: Features }>
+    > {
         const batchSize = this.task.trainingInformation?.batchSize
         if (batchSize === undefined) {
             throw new TypeError('batch size is undefined')
@@ -53,7 +58,7 @@ export class Validator {
         const groundTruth: number[] = []
         const predictions: number[] = []
 
-        const m = model.toTfjs()
+        const m = model.tfjs
 
         let hits = 0
         await data
@@ -64,7 +69,9 @@ export class Validator {
                     const xs = e.xs as tf.Tensor
 
                     const ys = this.getLabel(e.ys as tf.Tensor)
-                    const pred = this.getLabel(m.predict(xs, { batchSize }) as tf.Tensor)
+                    const pred = this.getLabel(
+                        m.predict(xs, { batchSize }) as tf.Tensor
+                    )
 
                     const currentFeatures = xs.arraySync()
 
@@ -96,7 +103,9 @@ export class Validator {
 
         if (useConfusionMatrix) {
             try {
-                this._confusionMatrix = tf.math.confusionMatrix([], [], 0).arraySync()
+                this._confusionMatrix = tf.math
+                    .confusionMatrix([], [], 0)
+                    .arraySync()
             } catch (e: any) {
                 console.error(e instanceof Error ? e.message : e.toString())
                 throw new Error('Failed to compute the confusion matrix')
@@ -119,24 +128,29 @@ export class Validator {
         }
 
         const model = await this.getModel()
-        const m = model.toTfjs()
+        const m = model.tfjs
         const predictions: number[] = []
 
-        await data.dataset
-            .batch(batchSize)
-            .forEachAsync((e) =>
-                predictions.push(
-                    ...((m.predict(e as tf.Tensor, { batchSize: batchSize }) as tf.Tensor)
-                        .argMax(1)
-                        .arraySync() as number[])
+        await data.dataset.batch(batchSize).forEachAsync((e) =>
+            predictions.push(
+                ...((
+                    m.predict(e as tf.Tensor, {
+                        batchSize: batchSize,
+                    }) as tf.Tensor
                 )
+                    .argMax(1)
+                    .arraySync() as number[])
             )
+        )
 
         return predictions
     }
 
     async getModel(): Promise<training.model.Model> {
-        if (this.source !== undefined && (await this.memory.contains(this.source))) {
+        if (
+            this.source !== undefined &&
+            (await this.memory.contains(this.source))
+        ) {
             return await this.memory.getModel(this.source)
         }
 

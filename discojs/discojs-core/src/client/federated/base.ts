@@ -81,7 +81,7 @@ export class FederatedClient extends Client {
 
         serverURL.pathname += `feai/${this.task.id}`
 
-        this._server = await this.connectServer(serverURL)
+        this._server = await this.connectServer(serverURL as any)
         this.aggregator.registerNode(FederatedClient.SERVER_NODE_ID)
 
         const msg: ClientConnected = {
@@ -134,6 +134,11 @@ export class FederatedClient extends Client {
         const msg: messages.MessageBase = {
             type: type.ReceiveServerPayload,
         }
+
+        const s = (this.server as WebSocketServer as any).socket as WebSocket
+        console.log(s.readyState)
+        s.onerror = (e) => console.error(e)
+        s.onclose = (e) => console.error('closing')
 
         // FIXME: this is never received in the server
         this.server.send(msg)

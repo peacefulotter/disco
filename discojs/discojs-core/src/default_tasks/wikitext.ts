@@ -3,7 +3,7 @@ import * as gpt from '../training/models/gpt'
 import { TFJSModel, Model } from '../training/model'
 
 const modelConfig: gpt.GPTConfig = {
-    modelType: 'gpt2',
+    modelType: 'gpt-nano',
     epochs: 10,
     maxIter: 10_000,
     batchSize: 4,
@@ -68,7 +68,7 @@ export const wikitext: TaskProvider<gpt.GPTConfig> = {
                 // ],
                 // vocabSize: 50258
                 // blockSize: 64
-                scheme: TrainingSchemes.LOCAL, // FIXME: FEDERATED / DECENTRALIZED is broken because of Bun I think
+                scheme: TrainingSchemes.FEDERATED, // FIXME: FEDERATED / DECENTRALIZED is broken because of Bun I think
                 noiseScale: undefined,
                 decentralizedSecure: true,
                 minimumReadyPeers: 3,

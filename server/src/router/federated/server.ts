@@ -100,12 +100,16 @@ export class Federated extends Server {
     private async storeAggregationResult(
         aggregator: aggregators.Aggregator
     ): Promise<void> {
+        console.log('[SERVER FED] storeAggregationResult 1')
         // Renew the aggregation result promise.
         const result = aggregator.receiveResult()
+        console.log('[SERVER FED] storeAggregationResult 2')
         // Store the result promise somewhere for the server to fetch from, so that it can await
         // the result on client request.
         this.results = this.results.set(aggregator.task.id, result)
+        console.log('[SERVER FED] storeAggregationResult 3')
         await result
+        console.log('[SERVER FED] storeAggregationResult 4')
         void this.storeAggregationResult(aggregator)
     }
 
@@ -138,12 +142,9 @@ export class Federated extends Server {
             clientId = randomUUID()
         }
 
-        console.log('[DEC SERVER] handle')
-
+        // TODO: pretty sure the callback can be async
         ws.on('message', (data: Buffer) => {
             const msg = msgpack.decode(data)
-            console.log('[DEC SERVER] on WS MESSAGE', msg)
-
             if (msg.type === MessageTypes.ClientConnected) {
                 let aggregator = this.aggregators.get(task.id)
                 if (aggregator === undefined) {
@@ -178,8 +179,10 @@ export class Federated extends Server {
 
                 if (
                     !(
-                        Array.isArray(payload) &&
-                        payload.every((e) => typeof e === 'number')
+                        (
+                            Array.isArray(payload) &&
+                            payload.every((e) => typeof e === 'number')
+                        ) // TODO: optimization: payload.includes( e => typeof e !== 'number' )
                     )
                 ) {
                     throw new Error('received invalid weights format')
@@ -239,10 +242,10 @@ export class Federated extends Server {
                     )
                 }
 
-                console.log('[DEC SERVER] promisedResult', promisedResult)
-
                 // Wait for aggregation result with timeout, giving the network a time window
                 // to contribute to the model sent to the requesting client.
+                console.log('[SERVER FED] PROMISED RESULT')
+
                 void Promise.race([promisedResult, client.utils.timeout()])
                     .then(
                         (result) =>
@@ -259,7 +262,7 @@ export class Federated extends Server {
                             ] as [serialization.weights.Encoded, number]
                     )
                     .then(([serialized, round]) => {
-                        console.log('[DEC SERVER] promisedResult', [
+                        console.log('[SERVER FED] promisedResult', [
                             serialized,
                             round,
                         ])
@@ -338,6 +341,9 @@ export class Federated extends Server {
                     ws.send(msgpack.encode(msg))
                 }
             }
+        })
+        ws.on('error', (err) => {
+            console.error(err)
         })
     }
 
