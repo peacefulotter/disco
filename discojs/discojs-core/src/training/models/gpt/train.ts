@@ -9,6 +9,7 @@ export type GPTConfigWithWandb = Required<GPTConfig> & WandbConfig
 export const getConfig = (config: GPTConfig): GPTConfigWithWandb => ({
     ...DEFAULT_CONFIG,
     ...config,
+    dataset: 'wikitext-103',
     platform:
         typeof window !== 'undefined' && typeof window.document !== 'undefined'
             ? 'browser'

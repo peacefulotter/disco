@@ -8,7 +8,6 @@ type MessageData = {
         data: number[]
     }
     done: boolean
-    pos: number
 }
 
 export class WebTextLoader extends dataset.loader.TextLoader {
@@ -55,8 +54,6 @@ export class WebTextLoader extends dataset.loader.TextLoader {
         }
 
         return new Promise<{ ws: WebSocket; id: string }>((resolve) => {
-            // waiting for a message from the worker to inform the loader
-            // that the websocket connection is opened
             ws.onopen = () => {
                 resolve({ ws, id })
             }
@@ -95,10 +92,9 @@ export class WebTextLoader extends dataset.loader.TextLoader {
             cache.resolve({ value: sample.value.data, done: sample.done })
         }
 
-        // iterator just to have a way to console.time the next() call
         const iterator = {
             next: async () => {
-                ws.send(JSON.stringify({ pos: 0, id }))
+                ws.send(JSON.stringify({ id }))
                 const sample = await cache.promise
                 cache.reset()
                 return sample

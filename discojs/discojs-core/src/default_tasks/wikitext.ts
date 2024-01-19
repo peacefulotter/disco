@@ -68,7 +68,7 @@ export const wikitext: TaskProvider<gpt.GPTConfig> = {
                 // ],
                 // vocabSize: 50258
                 // blockSize: 64
-                scheme: TrainingSchemes.FEDERATED, // FIXME: FEDERATED / DECENTRALIZED is broken because of Bun I think
+                scheme: TrainingSchemes.DECENTRALIZED, // FIXME: FEDERATED / DECENTRALIZED is broken because of Bun I think
                 noiseScale: undefined,
                 decentralizedSecure: true,
                 minimumReadyPeers: 3,

@@ -1,9 +1,11 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-import { GPTConfig } from '../model'
+import { GPTConfig } from '../config'
+import { GPTConfigWithWandb } from '..'
 
 export type WandbConfig = GPTConfig & {
+    dataset: string
     platform: string
     backend: string
     gpu: string
@@ -12,13 +14,13 @@ export type WandbConfig = GPTConfig & {
 
 export type WandbSave = {
     init: {
-        config: WandbConfig
+        config: GPTConfigWithWandb
         date: string
     }
     logs: any[]
 }
 
-const exportWandb = async (save: any) => {
+const exportWandb = async (save: WandbSave) => {
     let fs
     try {
         fs = require('fs/promises')
@@ -40,18 +42,20 @@ const exportWandb = async (save: any) => {
     )
     await fs.mkdir(dir, { recursive: true }).catch(console.error)
 
+    const { dataset, backend, gpu, platform, model } = save.init.config
+
     const p = path.join(
         dir,
-        `disco_${save.init.config.platform}_${save.init.config.backend}_${save.init.config.gpu}_${save.init.config.model}.json`
+        `disco_${dataset}_${platform}_${backend}_${gpu}_${model}.json`
     )
     await fs.writeFile(p, json, 'utf-8')
 }
 
 export class Wandb {
     public save: WandbSave
-    public config: WandbConfig
+    public config: GPTConfigWithWandb
 
-    constructor(config: WandbConfig) {
+    constructor(config: GPTConfigWithWandb) {
         const date = new Date().toISOString()
         this.save = {
             init: {
@@ -73,15 +77,18 @@ export class Wandb {
         // server (see ~/server/src/start_server.ts)
         // TODO: store url in .env file or find a different way to make this automatically compatible with Disco server
         console.log(this.save)
-        await exportWandb(this.save)
-        await fetch('http://localhost:8000/wandb', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                save: this.save,
-            }),
-        })
+        try {
+            await exportWandb(this.save)
+        } catch {
+            await fetch('http://localhost:8000/wandb', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    save: this.save,
+                }),
+            })
+        }
     }
 }

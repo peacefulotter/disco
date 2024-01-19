@@ -50,13 +50,12 @@ Bun.serve({
     },
     websocket: {
         async message(ws, payload) {
-            const { id, pos } = JSON.parse(payload as string) as {
-                pos: number
+            const { id } = JSON.parse(payload as string) as {
                 id: string
             }
             const status = database[id]
             const data = await status.next
-            ws.send(JSON.stringify({ ...data, pos }), false)
+            ws.send(JSON.stringify(data), false)
 
             // same as in core text-loader, we pre-fetch the next chunk even before actually requesting it
             status.next = status.iterator.next()

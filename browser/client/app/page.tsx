@@ -51,9 +51,7 @@ const runDatasetBenchmark = async (datasplit: dataset.DataSplit) => {
     console.log(label, 'starts', { blockSize, batchSize, vocabSize })
     console.time(label)
     for (let i = 0; i < iterations; i++) {
-        const { value } = (await iter.next()) as dataset.TokenizedIterResult
-        const { xs, ys } = value
-        tf.dispose([xs, ys])
+        await iter.next()
     }
     console.timeEnd(label)
 }
