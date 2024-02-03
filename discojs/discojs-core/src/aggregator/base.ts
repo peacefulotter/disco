@@ -211,7 +211,6 @@ export abstract class Base<T> {
         // TODO: for the love of god make this, and all emit eventNames, typesafe (not just a string but a strict enum or union type)
         // EventEmitter<PossibleEventNames> something like that
         const done = this.eventEmitter.emit('aggregation', aggregated)
-        console.log('[BASE AGGREGATOR] emit done:', done)
     }
 
     /**
@@ -231,11 +230,11 @@ export abstract class Base<T> {
 
     private async makeResult(): Promise<T> {
         return await new Promise((resolve) => {
-            console.log(
-                '[BASE AGGREGATOR] makeResult listening for aggregation'
-            )
+            // console.log(
+            //     '[BASE AGGREGATOR] makeResult listening for aggregation'
+            // )
             this.eventEmitter.once('aggregation', (w) => {
-                console.log('[BASE AGGREGATOR] makeResult got aggregation')
+                // console.log('[BASE AGGREGATOR] makeResult got aggregation')
                 resolve(w)
             })
         })

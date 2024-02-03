@@ -100,16 +100,16 @@ export class Federated extends Server {
     private async storeAggregationResult(
         aggregator: aggregators.Aggregator
     ): Promise<void> {
-        console.log('[SERVER FED] storeAggregationResult 1')
+        // console.log('[SERVER FED] storeAggregationResult 1')
         // Renew the aggregation result promise.
         const result = aggregator.receiveResult()
-        console.log('[SERVER FED] storeAggregationResult 2')
+        // console.log('[SERVER FED] storeAggregationResult 2')
         // Store the result promise somewhere for the server to fetch from, so that it can await
         // the result on client request.
         this.results = this.results.set(aggregator.task.id, result)
-        console.log('[SERVER FED] storeAggregationResult 3')
+        // console.log('[SERVER FED] storeAggregationResult 3')
         await result
-        console.log('[SERVER FED] storeAggregationResult 4')
+        // console.log('[SERVER FED] storeAggregationResult 4')
         void this.storeAggregationResult(aggregator)
     }
 
@@ -244,7 +244,7 @@ export class Federated extends Server {
 
                 // Wait for aggregation result with timeout, giving the network a time window
                 // to contribute to the model sent to the requesting client.
-                console.log('[SERVER FED] PROMISED RESULT')
+                // console.log('[SERVER FED] PROMISED RESULT')
 
                 void Promise.race([promisedResult, client.utils.timeout()])
                     .then(
@@ -262,10 +262,10 @@ export class Federated extends Server {
                             ] as [serialization.weights.Encoded, number]
                     )
                     .then(([serialized, round]) => {
-                        console.log('[SERVER FED] promisedResult', [
-                            serialized,
-                            round,
-                        ])
+                        // console.log('[SERVER FED] promisedResult', [
+                        //     serialized,
+                        //     round,
+                        // ])
                         const msg: messages.ReceiveServerPayload = {
                             type: MessageTypes.ReceiveServerPayload,
                             round,

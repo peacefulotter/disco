@@ -5,12 +5,12 @@ import { loadData, loadDataFace } from './data'
 
 {
     let serve = Bun.serve
-    Bun.serve = (x) =>
+    Bun.serve = (x: any) =>
         serve({
             ...x,
-            websocket: (x as any).websocket
+            websocket: x.websocket
                 ? {
-                      ...(x as any).websocket,
+                      ...x.websocket,
                       maxPayloadLength: 1_000_000_000,
                   }
                 : undefined,

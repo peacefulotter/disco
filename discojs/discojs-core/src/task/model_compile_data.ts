@@ -1,5 +1,3 @@
-import { tf } from '..'
-
 export function isModelCompileData(raw: unknown): raw is ModelCompileData {
     if (typeof raw !== 'object') {
         return false

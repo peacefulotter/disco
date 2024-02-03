@@ -1,15 +1,27 @@
 /// <reference lib="dom" />
 import { GlobalRegistrator } from '@happy-dom/global-registrator'
-const oldConsole = console
-GlobalRegistrator.register()
-window.console = oldConsole
 
 import fs from 'fs'
 import path from 'path'
-import { describe, test, expect } from 'bun:test'
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 import { encode, decode } from 'gpt-tokenizer/esm/model/text-davinci-003'
 import { tf, dataset, defaultTasks, Task, Disco } from '../..'
 import { WebTextLoader } from '.'
+
+// ==========================================================================
+/* Bun has an issue where it would hang forever because of happy-dom,
+ * The following code is a workaround to fix the issue
+ * https://github.com/oven-sh/bun/issues/8669
+ */
+beforeEach(() => {
+    const oldConsole = console
+    GlobalRegistrator.register()
+    window.console = oldConsole
+})
+afterEach(() => {
+    GlobalRegistrator.unregister()
+})
+// ==========================================================================
 
 /**
  * ================================================
@@ -46,6 +58,8 @@ const BENCHMARK_BATCH_SIZES = [4, 16, 32]
 const BENCHMARK_BLOCK_SIZES = [64, 128, 256, 512]
 
 const getDataset = async (config: Partial<dataset.TextConfig>) => {
+    console.log(config)
+
     const loaded = await new WebTextLoader(task).loadAll(source, config)
     const ds = loaded.train.dataset as dataset.TokenizedDataset
     return ds
